@@ -12,7 +12,7 @@ Private Sub name_AfterUpdate()
     Me!brand.BackColor = colors.white
 End Sub
 Private Sub cmd_cancel_Click()
-    DoCmd.Close acForm, Me.name
+    DoCmd.Close acForm, Me.Name
 End Sub
 Private Sub cmd_update_Click()
     Load.check_conn_and_variables
@@ -26,14 +26,14 @@ Private Sub cmd_update_Click()
     Next i
     Dim str_sql As String
     str_sql = "UPDATE " & sources.insurers_table & " SET " _
-        & "Name = '" & Me!name & "'" _
+        & "Name = '" & Me!Name & "'" _
         & ", insurer_type = " & Me!insurer_type _
         & ", is_playing = " & Me!is_playing _
         & " WHERE id = " & Me!id
     conn.Execute str_sql
-    MsgBox Me!name & " was updated. This form will now close.", , "Great success!"
+    MsgBox Me!Name & " was updated. This form will now close.", , "Great success!"
     fix_rs.insurers_f
-    DoCmd.Close acForm, Me.name
+    DoCmd.Close acForm, Me.Name
 End Sub
 Private Sub is_playing_AfterUpdate()
     Me!is_playing.BackColor = colors.white

@@ -302,7 +302,7 @@ Public Sub emails_convert_excels(ByVal is_test_run As Boolean)
             last_row = source_sheet.Cells(source_sheet.Rows.Count, "A").End(xlUp).Row
             excel_data = source_sheet.Range("A1:DA" & last_row)
             Dim source_sheet_name As String
-            source_sheet_name = source_sheet.name
+            source_sheet_name = source_sheet.Name
             source_workbook.Close
             Set source_workbook = Nothing
             

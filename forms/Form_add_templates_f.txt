@@ -10,7 +10,7 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 Private Sub cmd_cancel_Click()
-    DoCmd.Close acForm, Me.name
+    DoCmd.Close acForm, Me.Name
 End Sub
 Private Sub cmd_change_Click()
     Load.check_conn_and_variables

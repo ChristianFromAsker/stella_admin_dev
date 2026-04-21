@@ -183,7 +183,7 @@ Public Sub open_external_resource_app(ByVal app_name As String _
         
         current_db_name = ""
         On Error Resume Next
-        current_db_name = .CurrentDb.name
+        current_db_name = .CurrentDb.Name
         On Error GoTo err_handler
         If Load.is_debugging = True Then On Error GoTo 0
         

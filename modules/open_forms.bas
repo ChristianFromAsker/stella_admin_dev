@@ -1043,11 +1043,12 @@ Public Sub uws_f()
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
     
-    user_management.init
-    
+    Dim fld As cls_field
     Dim rs As ADODB.Recordset
     Dim str_form As String
     Dim str_sql As String
+    
+    user_management.init
         
     str_form = "uws_f"
     If CurrentProject.AllForms(str_form).IsLoaded = False Then
@@ -1058,9 +1059,17 @@ Public Sub uws_f()
     With Forms(str_form)
         .Controls(user_management.header_controls.header_chooser_year.field_name).Value = 0
     End With
-    'fix rs for form
+    
     fix_rs.uws_f " AND (user_type_id = 150 OR user_type_id = 149)", Load.sources.uw_roles_view
     user_management.uw_statistics " AND (user_type_id = 150 OR user_type_id = 149)"
+    
+    For Each fld In user_management.col_filter_controls
+        If fld.field_name_in_recordset <> "-1" Then
+            fld.is_active = True
+        End If
+    Next fld
+    user_management.referesh_filter_controls
+    
 outro:
     Exit Sub
     
@@ -1308,7 +1317,7 @@ Public Sub templates_f()
             Loop
             Set template_folder = CreateObject("Scripting.FileSystemObject")
             For Each folder In template_folder.getfolder(templates_folder_path).SubFolders
-                .AddItem CStr(folder.name)
+                .AddItem CStr(folder.Name)
             Next folder
             Set template_folder = Nothing
         End With

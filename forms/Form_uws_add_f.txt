@@ -54,7 +54,7 @@ Private Sub cmd_add_Click()
     Next form_field
     
     If col_fields.Count > 0 Then
-        utilities.paint_control Me.name, col_fields
+        utilities.paint_control Me.Name, col_fields
         GoTo outro
     End If
     
@@ -130,7 +130,7 @@ Private Sub cmd_add_Click()
     End If
     
     fix_rs.uws_f_refresh
-    DoCmd.Close acForm, Me.name
+    DoCmd.Close acForm, Me.Name
     
 outro:
     utilities.call_stack_remove_last_item True
@@ -187,3 +187,4 @@ End Sub
 Private Sub uw_name_AfterUpdate()
     Me!uw_name.BackColor = Load.colors.white
 End Sub
+

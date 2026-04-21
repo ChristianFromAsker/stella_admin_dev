@@ -118,7 +118,7 @@ Public Sub check_secondary_access_app()
         'Therefore, need to check if the app is available via a try-catch solution
         secondary_app_name = ""
         On Error Resume Next
-            secondary_app_name = Load.secondary_access_app.CurrentDb.name
+            secondary_app_name = Load.secondary_access_app.CurrentDb.Name
         On Error GoTo err_handler
         If Load.is_debugging = True Then On Error GoTo 0
         If secondary_app_name = "" Then
@@ -272,7 +272,7 @@ Public Sub remove_images_from_access_file()
     With rs
         .OpenRecordset
         Do Until .EOF
-            If InStr(1, rs!name, "main_menu") Then
+            If InStr(1, rs!Name, "main_menu") Then
                 .Delete
             End If
             .MoveNext

@@ -226,11 +226,11 @@ Private Sub cmd_generate_report_Click()
         wb.Activate
         Set ws = appexcel.Worksheets.Add
         With ws
-            .name = "Stella"
+            .Name = "Stella"
             'Create column names and format spreadsheet
             .Range("a1:e1").Merge
             .Range("a1").HorizontalAlignment = xlLeft
-            .Range("a1:n200").Font.name = "Montserrat"
+            .Range("a1:n200").Font.Name = "Montserrat"
             .Range("a1:n200").Font.Size = 10
             .Columns(1).ColumnWidth = 16
         End With
@@ -357,7 +357,7 @@ Private Sub Form_Load()
     Me.Picture = Load.form_backgrounds.MenuMainF
     
     ' Move and minimize access window.
-    windows_apis.AccessMoveSize 0, 0, 250, 10
+    windows_apis.AccessMoveSize 0, 0, 400, 50
     DoCmd.MoveSize Right:=0, Down:=0, Width:=16000, Height:=10000
     
     'set default values and propertoes

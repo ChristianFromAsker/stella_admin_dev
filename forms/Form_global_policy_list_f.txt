@@ -22,7 +22,7 @@ Private Sub cmd_canada_Click()
     
     global_policy_list.update_navins_home_button global_policy_list.navins_canada
     col.Add global_policy_list.navins_canada
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 outro:
     Exit Sub
@@ -36,7 +36,7 @@ Private Sub cmd_denmark_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_denmark
     col.Add global_policy_list.navins_denmark
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -45,7 +45,7 @@ Private Sub cmd_dubai_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_dubai
     col.Add global_policy_list.navins_dubai
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -54,7 +54,7 @@ Private Sub cmd_finland_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_finland
     col.Add global_policy_list.navins_finland
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -63,7 +63,7 @@ Private Sub cmd_germany_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_germany
     col.Add global_policy_list.navins_germany
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -72,7 +72,7 @@ Private Sub cmd_holland_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_holland
     col.Add global_policy_list.navins_holland
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -81,7 +81,7 @@ Private Sub cmd_norway_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_norway
     col.Add global_policy_list.navins_norway
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -95,7 +95,7 @@ Private Sub cmd_singapore_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_singapore
     col.Add global_policy_list.navins_singapore
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -104,7 +104,7 @@ Private Sub cmd_spain_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_spain
     col.Add global_policy_list.navins_spain
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -113,7 +113,7 @@ Private Sub cmd_sweden_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_sweden
     col.Add global_policy_list.navins_sweden
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -122,7 +122,7 @@ Private Sub cmd_switzerland_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_switzerland
     col.Add global_policy_list.navins_switzerland
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -131,7 +131,7 @@ Private Sub cmd_uk_old_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_uk_old
     col.Add global_policy_list.navins_uk_old
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -140,7 +140,7 @@ Private Sub cmd_uk_solutions_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_uk_solutions
     col.Add global_policy_list.navins_uk_solutions
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 
@@ -149,7 +149,7 @@ Private Sub cmd_usa_Click()
     Dim col As New Collection
     global_policy_list.update_navins_home_button global_policy_list.navins_usa
     col.Add global_policy_list.navins_usa
-    utilities.paint_control Me.name, col
+    utilities.paint_control Me.Name, col
     fix_rs.global_policy_list_f
 End Sub
 Private Sub comSector_AfterUpdate()
@@ -244,7 +244,7 @@ Private Sub cmdAllNone_Click()
             End With
         Next navins_home
     End If
-    utilities.paint_control Me.name, global_policy_list.col_navins_homes
+    utilities.paint_control Me.Name, global_policy_list.col_navins_homes
 End Sub
 
 Private Sub FixCountryColors(ByVal strCountry As String)

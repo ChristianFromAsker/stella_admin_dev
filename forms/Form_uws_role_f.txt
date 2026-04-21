@@ -65,7 +65,7 @@ Private Sub cmd_add_Click()
     
     Load.conn.Execute str_sql
     fix_rs.uws_f_refresh
-    DoCmd.Close acForm, Me.name
+    DoCmd.Close acForm, Me.Name
 outro:
     utilities.call_stack_remove_last_item True
     Exit Sub

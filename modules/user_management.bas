@@ -5,6 +5,30 @@ Public Type typ_header_controls
     header_chooser_year As New cls_field
 End Type
 
+Public Type typ_filter_controls
+    header_cmd_1 As New cls_field
+    header_cmd_2 As New cls_field
+    header_cmd_3 As New cls_field
+    header_cmd_4 As New cls_field
+    header_cmd_5 As New cls_field
+    header_cmd_6 As New cls_field
+    header_cmd_7 As New cls_field
+    header_cmd_8 As New cls_field
+    header_cmd_9 As New cls_field
+    header_cmd_10 As New cls_field
+    header_cmd_11 As New cls_field
+    header_cmd_12 As New cls_field
+    header_cmd_13 As New cls_field
+    header_cmd_14 As New cls_field
+    header_cmd_15 As New cls_field
+    header_cmd_16 As New cls_field
+    header_cmd_17 As New cls_field
+    header_cmd_18 As New cls_field
+    header_cmd_19 As New cls_field
+    header_cmd_20 As New cls_field
+    header_cmd_21 As New cls_field
+End Type
+
 Public Type typ_uw_data_controls
     uw_name As New cls_field
     nickname As New cls_field
@@ -27,8 +51,10 @@ Public Type typ_uw_data_controls
     username As New cls_field
 End Type
 
+Public col_filter_controls As Collection
 Public col_uw_data_controls As Collection
 Public current_source As String
+Public filter_controls As user_management.typ_filter_controls
 Public header_controls As user_management.typ_header_controls
 Public uw_data_controls As user_management.typ_uw_data_controls
 
@@ -39,6 +65,8 @@ Public Sub uw_statistics(ByVal str_condition As String)
     If Load.is_debugging = True Then On Error GoTo 0
     
     Const form_name As String = "uws_f"
+    
+    Dim lon_year As Long
     Dim rs As ADODB.Recordset
     Dim str_sql As String
     
@@ -49,8 +77,12 @@ Public Sub uw_statistics(ByVal str_condition As String)
     rs.Close
     Set rs = Nothing
     
-    ' if forms(form_name").controls(
-    str_sql = "SELECT * FROM " & Load.sources.uw_role_fte_by_year_view & " WHERE "
+    lon_year = Forms(form_name).Controls(user_management.header_controls.header_chooser_year.field_name)
+    str_sql = "SELECT SUM(fte_portion) fte_count FROM " & Load.sources.uw_role_fte_by_year_view & " WHERE 1 " & str_condition & " AND year = " & lon_year
+    Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+        Forms(form_name)!fte_count = rs!fte_count
+    rs.Close
+    Set rs = Nothing
     
 outro:
     utilities.call_stack_remove_last_item False
@@ -199,6 +231,122 @@ Public Sub init()
     
     user_management.init__cols
     user_management.init__uw_data_controls
+    user_management.init__filter_controls
+outro:
+    utilities.call_stack_remove_last_item False
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Public Sub referesh_filter_controls()
+    Const proc_name As String = "user_management.referesh_filter_controls"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+
+    Dim fld As cls_field
+    
+    For Each fld In user_management.col_filter_controls
+        fld.field_bg_color = Load.colors.light_green
+        If fld.is_active = False Then fld.field_bg_color = Load.colors.light_red
+        If fld.field_caption = "-1" Then
+            fld.field_caption = fld.field_caption_default
+        End If
+    Next fld
+    
+    utilities.paint_control "uws_f", user_management.col_filter_controls
+    
+outro:
+    utilities.call_stack_remove_last_item False
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Public Sub change_filter_role(input_control As cls_field)
+    Const proc_name As String = "user_management.change_filter_role"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Dim col_paint As Collection
+    Dim fld As cls_field
+    Dim str_caption As String
+    
+    With input_control
+        If .is_active = True Then
+            .is_active = False
+        Else
+            .is_active = True
+        End If
+        str_caption = .field_caption_default
+        str_caption = Split(str_caption, ":")(0)
+        If .is_active = True Then
+            .field_bg_color = Load.colors.light_green
+            str_caption = str_caption & ": on"
+        ElseIf .is_active = False Then
+            .field_bg_color = Load.colors.light_red
+            str_caption = str_caption & ": off"
+        End If
+        .field_caption = str_caption
+    End With
+    
+    Set col_paint = New Collection
+    col_paint.Add input_control
+    utilities.paint_control "uws_f", col_paint
+    
+    user_management.refresh_uws_f
+outro:
+    utilities.call_stack_remove_last_item False
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Public Sub refresh_uws_f()
+    Const proc_name As String = "user_management.refresh_uws_f"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Dim budget_condition As String
+    Dim fld As cls_field
+    Dim input_year As Long
+    Dim role_condition As String
+    Dim str_condition As String
+    Dim year_condition As String
+    
+    input_year = Forms("uws_f")!header_chooser_year
+    If input_year > 1 Then
+        year_condition = " AND (YEAR(employee_role_start_date) <= " & input_year & " AND" _
+        & "(YEAR(employee_role_end_date) >= " & input_year & " OR employee_role_end_date IS NULL)" _
+        & ")"
+    End If
+    
+    role_condition = ""
+    budget_condition = ""
+    For Each fld In user_management.col_filter_controls
+        If fld.is_active Then
+            If fld.field_name_in_recordset = "role_id" Then
+                If role_condition <> "" Then role_condition = role_condition & " OR "
+                role_condition = role_condition & fld.field_name_in_recordset & " = " & fld.field_value
+            ElseIf fld.field_name_in_recordset = "budget_region_id" Then
+                If budget_condition <> "" Then budget_condition = budget_condition & " OR "
+                budget_condition = budget_condition & fld.field_name_in_recordset & " = " & fld.field_value
+            End If
+        End If
+    Next fld
+    If role_condition <> "" Then role_condition = " AND (" & role_condition & ")"
+    If budget_condition <> "" Then budget_condition = " AND (" & budget_condition & ")"
+    
+    str_condition = year_condition & role_condition & budget_condition
+    
+    If user_management.current_source = "" Then user_management.current_source = Load.sources.uw_roles_view
+    fix_rs.uws_f str_condition, user_management.current_source
+    
+    user_management.uw_statistics str_condition
+    
 outro:
     utilities.call_stack_remove_last_item False
     Exit Sub
@@ -234,6 +382,32 @@ Public Sub init__cols()
         user_management.col_uw_data_controls.Add .uw_initials
         user_management.col_uw_data_controls.Add .uw_name
     End With
+    
+    Set user_management.col_filter_controls = New Collection
+    With user_management.filter_controls
+        user_management.col_filter_controls.Add .header_cmd_1
+        user_management.col_filter_controls.Add .header_cmd_2
+        user_management.col_filter_controls.Add .header_cmd_3
+        user_management.col_filter_controls.Add .header_cmd_4
+        user_management.col_filter_controls.Add .header_cmd_5
+        user_management.col_filter_controls.Add .header_cmd_6
+        user_management.col_filter_controls.Add .header_cmd_7
+        user_management.col_filter_controls.Add .header_cmd_8
+        user_management.col_filter_controls.Add .header_cmd_9
+        user_management.col_filter_controls.Add .header_cmd_10
+        user_management.col_filter_controls.Add .header_cmd_11
+        user_management.col_filter_controls.Add .header_cmd_12
+        user_management.col_filter_controls.Add .header_cmd_13
+        user_management.col_filter_controls.Add .header_cmd_14
+        user_management.col_filter_controls.Add .header_cmd_15
+        user_management.col_filter_controls.Add .header_cmd_16
+        user_management.col_filter_controls.Add .header_cmd_17
+        user_management.col_filter_controls.Add .header_cmd_18
+        user_management.col_filter_controls.Add .header_cmd_19
+        user_management.col_filter_controls.Add .header_cmd_20
+        user_management.col_filter_controls.Add .header_cmd_21
+    End With
+    
 outro:
     utilities.call_stack_remove_last_item False
     Exit Sub
@@ -268,7 +442,176 @@ err_handler:
     Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
     Resume outro
 End Function
-
+Public Sub init__filter_controls()
+    Const proc_name As String = "user_management.init__filter_control"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Dim fld As cls_field
+    
+    With user_management.filter_controls
+        With .header_cmd_1
+            .field_name = "header_cmd_1"
+            .id = 5
+            .field_caption_default = "uw: on"
+            .field_name_in_recordset = "role_id"
+            .field_value = 5
+            .field_visible = True
+        End With
+        With .header_cmd_2
+            .field_name = "header_cmd_2"
+            .id = 5
+            .field_caption_default = "analyst: on"
+            .field_name_in_recordset = "role_id"
+            .field_value = 6
+            .field_visible = True
+        End With
+        With .header_cmd_3
+            .field_name = "header_cmd_3"
+            .id = 5
+            .field_caption_default = "global ops: on"
+            .field_name_in_recordset = "role_id"
+            .field_value = 7
+            .field_visible = True
+        End With
+        With .header_cmd_4
+            .field_name = "header_cmd_4"
+            .id = 5
+            .field_caption_default = "claims: on"
+            .field_name_in_recordset = "role_id"
+            .field_value = 8
+            .field_visible = True
+        End With
+        With .header_cmd_5
+            .field_name = "header_cmd_5"
+            .id = 5
+            .field_caption_default = "management: on"
+            .field_name_in_recordset = "role_id"
+            .field_value = 9
+            .field_visible = True
+        End With
+        With .header_cmd_6
+            .field_name = "header_cmd_6"
+            .id = -1
+            .field_caption_default = "header_cmd_6"
+        End With
+        With .header_cmd_7
+            .field_name = "header_cmd_7"
+            .id = -1
+            .field_caption_default = "header_cmd_7"
+            .field_visible = False
+        End With
+        With .header_cmd_8
+            .field_name = "header_cmd_8"
+            .id = -1
+            .field_caption_default = "header_cmd_8"
+            .field_visible = False
+        End With
+        With .header_cmd_9
+            .field_name = "header_cmd_9"
+            .id = -1
+            .field_caption_default = "header_cmd_9"
+            .field_visible = False
+        End With
+        With .header_cmd_10
+            .field_name = "header_cmd_10"
+            .id = 476
+            .field_caption_default = "APAC: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 476
+            .field_visible = True
+        End With
+        With .header_cmd_11
+            .field_name = "header_cmd_11"
+            .id = 472
+            .field_caption_default = "Benelux: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 472
+            .field_visible = True
+        End With
+        With .header_cmd_12
+            .field_name = "header_cmd_12"
+            .id = 502
+            .field_caption_default = "Canada: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 502
+            .field_visible = True
+        End With
+        With .header_cmd_13
+            .field_name = "header_cmd_13"
+            .id = 473
+            .field_caption_default = "DACH: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 473
+            .field_visible = True
+        End With
+        With .header_cmd_14
+            .field_name = "header_cmd_14"
+            .id = 475
+            .field_caption_default = "Med: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 475
+            .field_visible = True
+        End With
+        With .header_cmd_15
+            .field_name = "header_cmd_15"
+            .id = 488
+            .field_caption_default = "Dubai: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 488
+            .field_visible = True
+        End With
+        With .header_cmd_16
+            .field_name = "header_cmd_16"
+            .id = 474
+            .field_caption_default = "Nordics: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 474
+            .field_visible = True
+        End With
+        With .header_cmd_17
+        .field_name = "header_cmd_17"
+            .id = 471
+            .field_caption_default = "UK: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 471
+            .field_visible = True
+        End With
+        With .header_cmd_18
+            .field_name = "header_cmd_18"
+            .id = 477
+            .field_caption_default = "US: on"
+            .field_name_in_recordset = "budget_region_id"
+            .field_value = 477
+            .field_visible = True
+        End With
+        With .header_cmd_19
+            .field_name = "header_cmd_19"
+            .id = -1
+            .field_caption_default = "header_cmd_19"
+            .field_visible = False
+        End With
+        With .header_cmd_20
+            .field_name = "header_cmd_20"
+            .id = -1
+            .field_caption_default = "header_cmd_20"
+            .field_visible = False
+        End With
+        With .header_cmd_21
+            .field_name = "header_cmd_21"
+            .id = -1
+            .field_caption_default = "header_cmd_21"
+            .field_visible = False
+        End With
+    End With
+outro:
+    utilities.call_stack_remove_last_item False
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
 Public Sub init__uw_data_controls()
     Const proc_name As String = "user_management.init__uw_data_controls"
     utilities.call_stack_add_item proc_name

@@ -18,7 +18,9 @@ Public excel_horizontal_alignment As Long
 
 Public field_bg_color As Long
 Public field_caption As String
+Public field_caption_default As String
 Public field_caption_us As String
+Public field_caption_us_default As String
 Public field_height As Long
 
 Public field_left As Long
