@@ -1,0 +1,151 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_add_financial_advisor_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+Private Sub cmd_cancel_Click()
+    DoCmd.Close acForm, "add_financial_advisor_f"
+End Sub
+Private Sub cmd_change_Click()
+    Load.check_conn_and_variables
+    Dim str_form As String
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    str_form = "change_financial_advisor_f"
+    DoCmd.OpenForm str_form
+    'Populate change form with data
+    Dim i As Integer
+    With Forms(str_form)
+        For i = 1 To arr_fields(0, 0)
+            .Controls(arr_fields(i, 0)) = Me.Controls(arr_fields(i, 0))
+            If arr_fields(i, 1) = 1 And IsNull(Me.Controls(arr_fields(i, 0))) Then
+                .Controls(arr_fields(i, 0)).BackColor = colors.yellow
+            End If
+        Next i
+    End With
+    ' Close the firm as the dataset will be updated when the change happens, and I don't want to have another form update this form.
+    DoCmd.Close acForm, "add_financial_advisor_f"
+End Sub
+Private Sub cmd_close_save_Click()
+    'latest review or change: 1 mar 2023
+    'intro
+    On Error GoTo err_handler
+    Load.check_conn_and_variables
+    Dim str_sql As String, rs As ADODB.Recordset, i As Integer
+
+    'Check that necessary fields are populated
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    Dim boo_cancel As Boolean
+    boo_cancel = False
+    For i = 1 To arr_fields(0, 0)
+        If arr_fields(i, 1) = 1 And IsNull(Me.Controls("new_" & arr_fields(i, 0))) Then
+            Me.Controls("new_" & arr_fields(i, 0)).BackColor = colors.yellow
+            boo_cancel = True
+        End If
+    Next i
+    If boo_cancel = True Then
+        Exit Sub
+    End If
+    If IsEmpty(Me!new_short_name) Or IsNull(Me!new_short_name) Or Me!new_short_name = "" Then
+        Me!new_short_name.BackColor = colors.yellow
+        Exit Sub
+    End If
+    str_sql = "INSERT INTO " & sources.financial_advisors_table & " (firm_name, brand, Jurisdiction, Comments) VALUES (" _
+        & "'" & Me!new_short_name & "'" _
+        & ", '" & Me!new_brand & "'" _
+        & ", '" & Nz(Me!new_country, "_All") & "'" _
+        & ", '" & Me!new_comment & "'" _
+        & ")"
+    conn.Execute str_sql
+    
+    'Let user now this worked
+    MsgBox Me!new_short_name & " was added.", , "Great success!"
+    'Reset form
+    Dim str_form As String
+    fix_rs.financial_advisors_f
+    With Me
+        For i = 1 To arr_fields(0, 0) - 1 'Last field is id, which is not a 'new' field.
+            .Controls("new_" & arr_fields(i, 0)) = ""
+            .Controls("new_" & arr_fields(i, 0)).BackColor = colors.white
+        Next i
+    End With
+outro:
+    If Not rs Is Nothing Then
+        If rs.State = 1 Then rs.Close
+        Set rs = Nothing
+    End If
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .call_stack = Load.call_stack
+        .routine_name = "cmd_add_update.Click"
+        .milestone = ""
+        .params = "str_sql = " & str_sql
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+
+End Sub
+Private Sub cmd_delete_Click()
+    Load.check_conn_and_variables
+    Dim str_message As String
+    Dim str_firm_name As String
+    str_firm_name = Nz(Me!short_name, "")
+    str_message = "You are about to delete " & str_firm_name & ". Please confirm."
+    Dim answer As Variant
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        Exit Sub
+    Else
+        conn.Execute "UPDATE " & sources.financial_advisors_table & " SET is_deleted = 1 WHERE ID = " & Me!id
+        fix_rs.financial_advisors_f
+    End If
+End Sub
+Private Sub Form_Load()
+    DoCmd.MoveSize Right:=200, Down:=200, Width:=19000, Height:=8000
+    Load.check_conn_and_variables
+End Sub
+Private Function declare_fields()
+    Const int_number_of_fields As Integer = 5
+    Dim i As Integer: i = 0
+    Dim arr_fields(0 To int_number_of_fields, 0 To 1) As Variant
+    'For the second value, 0 is the field name and 1 is 0 if optional and 1 if mandatory.
+    arr_fields(i, 0) = int_number_of_fields
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "short_name"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "country"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "brand"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "comment"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "id"
+    arr_fields(i, 1) = 0: i = i + 1
+    declare_fields = arr_fields
+End Function
+Private Sub new_brand_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_brand.BackColor = colors.white
+End Sub
+Private Sub new_country_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_country.BackColor = colors.white
+End Sub
+Private Sub new_short_name_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_short_name.BackColor = colors.white
+End Sub

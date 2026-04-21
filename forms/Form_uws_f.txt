@@ -1,0 +1,224 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_uws_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub cmd_add_uw_Click()
+    Const proc_name As String = "uws_f.cmd_add_uw"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim col_paint As Collection
+    Dim uw_id As Long
+    open_forms.uws_add_f
+    uw_id = user_management.add_new_uw_id
+    Set col_paint = New Collection
+    With user_management.uw_data_controls
+        Forms("uws_add_f").Controls(.uw_id.field_name) = uw_id
+        .employee_role_id.field_visible = True
+        col_paint.Add .employee_role_id
+    End With
+    utilities.paint_control "uws_add_f", col_paint
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub cmd_change_role_Click()
+    Const proc_name As String = "uws_f.cmd_change_role.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim employee_role_link_id As Long
+    Dim new_role As Boolean
+    Dim rs As ADODB.Recordset
+    Dim str_sql As String
+    
+    employee_role_link_id = -1
+    On Error Resume Next
+        employee_role_link_id = Me!employee_role_link_id
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    open_forms.uws_role_f
+    new_role = False
+    
+    If employee_role_link_id = -1 Then
+        str_sql = "INSERT INTO " & Load.sources.employee_role_links_table _
+        & " (is_deleted, uw_id__underwriters_t, employee_role_id__employee_roles_t, employee_role_start_date)" _
+        & " VALUES(0, " & Me!uw_id & ", 6, '1900-01-01')"
+        Load.conn.Execute str_sql
+        
+        str_sql = "SELECT employee_role_link_id" _
+        & " FROM " & Load.sources.employee_role_links_table _
+        & " WHERE employee_role_start_date = '1900-01-01' AND is_deleted = 0 AND uw_id__underwriters_t = " & Me!uw_id _
+        & " ORDER BY employee_role_link_id DESC LIMIT 1"
+        
+        Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+            employee_role_link_id = rs!employee_role_link_id
+        rs.Close
+        Set rs = Nothing
+
+        new_role = True
+    End If
+    
+    user_management.populate_uws_role employee_role_link_id, new_role
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub cmd_refresh_Click()
+    Const proc_name As String = "uws_f.cmd_refresh.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim rs As ADODB.Recordset
+    Dim str_sql As String
+    
+    str_sql = Me.RecordSource
+    If str_sql = "" Then
+        If user_management.current_source = "" Then user_management.current_source = Load.sources.uw_roles_view
+        fix_rs.uws_f "", user_management.current_source
+    Else
+        Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+        Set Me.Recordset = rs
+        rs.Close
+        Set rs = Nothing
+    End If
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub cmd_change_employee_Click()
+    Const proc_name As String = "uws_f.cmd_change_employee.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    open_forms.uws_add_f
+    user_management.populate_uws_add_f_with_existing_user Me!uw_id
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub cmd_delete_Click()
+    Const proc_name As String = "uws_f.cmd_delete.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim answer As Variant
+    Dim str_message As String
+    Dim str_sql As String
+    Dim uw_id As Long
+    
+    uw_id = Me!uw_id
+    str_message = "You are about to delete " & Me!uw_name & ". Please confirm."
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        GoTo outro
+    Else
+        str_sql = "UPDATE " & Load.sources.uws_table & " SET is_deleted = 1 WHERE uw_id = " & uw_id
+        conn.Execute str_sql
+        str_sql = "UPDATE " & Load.sources.employee_role_links_table & " SET is_deleted = 1 WHERE uw_id__underwriters_t = " & uw_id
+        conn.Execute str_sql
+        MsgBox "Click refresh to update list.", , "View contains deleted UW"
+    End If
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub header_chooser_year_AfterUpdate()
+    Const proc_name As String = "uws_f.header_chooser_year.AfterUpdate"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim str_condition As String
+    Dim input_year As Long
+    
+    input_year = Me!header_chooser_year
+    str_condition = ""
+    
+    If input_year > 1 Then
+        str_condition = " AND (YEAR(employee_role_start_date) <= " & input_year & " AND" _
+        & "(YEAR(employee_role_end_date) >= " & input_year & " OR employee_role_end_date IS NULL)" _
+        & ")"
+    End If
+    
+    If user_management.current_source = "" Then user_management.current_source = Load.sources.uw_roles_view
+    fix_rs.uws_f str_condition, user_management.current_source
+    user_management.uw_statistics str_condition
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub header_cmd_switch_source_Click()
+    Const proc_name As String = "uws_f.header_cmd_switch_source.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    If user_management.current_source = "" Or user_management.current_source = Load.sources.uw_roles_view Then
+        fix_rs.uws_f " AND employed = 93", Load.sources.uws_view
+        user_management.current_source = Load.sources.uws_view
+    Else
+        fix_rs.uws_f "", Load.sources.uw_roles_view
+        user_management.current_source = Load.sources.uw_roles_view
+    End If
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+

@@ -1,0 +1,145 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_add_templates_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+Private Sub cmd_cancel_Click()
+    DoCmd.Close acForm, Me.name
+End Sub
+Private Sub cmd_change_Click()
+    Load.check_conn_and_variables
+    Dim str_form As String
+    Dim arr_fields() As Variant, i As Integer
+    arr_fields = declare_fields
+    'Populate change fields with data
+    With Me
+        For i = 1 To arr_fields(0, 0)
+            .Controls("new_" & arr_fields(i, 0)) = .Controls(arr_fields(i, 0))
+            If arr_fields(i, 1) = 1 And IsNull(.Controls(arr_fields(i, 0))) Then
+                .Controls(arr_fields(i, 0)).BackColor = colors.yellow
+            End If
+        Next i
+    End With
+    Me!cmd_add.Caption = "update"
+End Sub
+Private Sub cmd_add_Click()
+    
+    Load.check_conn_and_variables
+    
+    Dim arr_fields() As Variant
+    Dim boo_cancel As Boolean
+    Dim i As Integer
+    
+    arr_fields = declare_fields
+    
+    boo_cancel = False
+    
+    For i = 1 To arr_fields(0, 0)
+        If arr_fields(i, 1) = 1 And IsNull(Me.Controls("new_" & arr_fields(i, 0))) Then
+            Me.Controls("new_" & arr_fields(i, 0)).BackColor = colors.yellow
+            boo_cancel = True
+        End If
+    Next i
+    If boo_cancel = True Then
+        Exit Sub
+    End If
+    Dim template_type As String
+    If Me!folder = "expense_agreements" Then
+        template_type = 474
+    ElseIf Me!folder = "invoices" Then
+        template_type = 476
+    Else
+        MsgBox "Template type not recognized. Talk to Christian", , "Unknown template type"
+        Exit Sub
+    End If
+    Dim str_sql As String
+    If IsNull(Me!new_id) Or Me!new_id = "" Then
+        str_sql = "INSERT INTO templates_t(template_name, file_name, folder, comment, template_type) VALUES (" _
+            & "'" & Me!new_template_name & "'" _
+            & ", '" & Me!new_file_name & "'" _
+            & ", '" & Me!new_folder & "'" _
+            & ", '" & Me!new_comment & "'" _
+            & ", '" & template_type & "'" _
+            & ");"
+    Else
+        str_sql = "UPDATE templates_t SET " _
+            & "template_name = '" & Me!new_template_name & "'" _
+            & ", folder = '" & Me!new_folder & "'" _
+            & ", file_name = '" & Me!new_file_name & "'" _
+            & ", comment = '" & Me!new_comment & "'" _
+            & ", template_type = " & template_type _
+            & " WHERE id = " & Me!new_id & ";"
+    End If
+    conn.Execute str_sql
+    'Update recordsource
+    fix_rs.templates_f
+    'Reset form
+    With Me
+        For i = 1 To arr_fields(0, 0)
+            .Controls("new_" & arr_fields(i, 0)) = ""
+            .Controls("new_" & arr_fields(i, 0)).BackColor = colors.white
+        Next i
+    End With
+    Me!cmd_add.Caption = "Add"
+End Sub
+Private Sub cmd_delete_Click()
+    Load.check_conn_and_variables
+    Dim str_message As String
+    str_message = "You are about to delete " & Me!template_name & ". Please confirm."
+    Dim answer As Variant
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        Exit Sub
+    Else
+        conn.Execute "UPDATE " & sources.templates_table & " SET is_deleted = 1 WHERE id = " & Me!id
+        fix_rs.templates_f
+    End If
+End Sub
+Private Sub cmd_refresh_Click()
+    Load.check_conn_and_variables
+    
+    Me!new_file_name = Nothing
+    Dim files As String
+    If IsNull(Me!new_folder) = True Then
+        Me!new_folder.BackColor = colors.yellow
+        Exit Sub
+    End If
+    files = Dir(Load.system_info.system_paths.template_path & "stella_templates\" & Me!new_folder & "\*")
+    With Me!new_file_name
+        Do While .ListCount > 0
+            .RemoveItem (0)
+        Loop
+        Do While Len(files) > 0
+            .AddItem CStr(files)
+            files = Dir
+        Loop
+    End With
+End Sub
+Private Function declare_fields()
+    Const int_number_of_fields As Integer = 4
+    Dim i As Integer: i = 0
+    Dim arr_fields(0 To int_number_of_fields, 0 To 1) As Variant
+    'For the second value, 0 is the field name and 1 is 0 if optional and 1 if mandatory.
+    arr_fields(i, 0) = int_number_of_fields
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "template_name"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "file_name"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "folder"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "id"
+    arr_fields(i, 1) = 0: i = i + 1
+    declare_fields = arr_fields
+End Function
+Private Sub new_folder_name_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_folder_name.BackColor = colors.white
+End Sub
+

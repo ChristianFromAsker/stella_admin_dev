@@ -1,0 +1,386 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_global_policy_list_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub cmd_canada_Click()
+    Const proc_name As String = "global_policy_list_f.cmd_canada.click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Dim col As New Collection
+    
+    Load.check_conn_and_variables
+    
+    global_policy_list.update_navins_home_button global_policy_list.navins_canada
+    col.Add global_policy_list.navins_canada
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+outro:
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub cmd_denmark_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_denmark
+    col.Add global_policy_list.navins_denmark
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_dubai_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_dubai
+    col.Add global_policy_list.navins_dubai
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_finland_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_finland
+    col.Add global_policy_list.navins_finland
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_germany_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_germany
+    col.Add global_policy_list.navins_germany
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_holland_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_holland
+    col.Add global_policy_list.navins_holland
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_norway_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_norway
+    col.Add global_policy_list.navins_norway
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_reset_Click()
+    global_policy_list.set_default_values
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_singapore_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_singapore
+    col.Add global_policy_list.navins_singapore
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_spain_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_spain
+    col.Add global_policy_list.navins_spain
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_sweden_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_sweden
+    col.Add global_policy_list.navins_sweden
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_switzerland_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_switzerland
+    col.Add global_policy_list.navins_switzerland
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_uk_old_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_uk_old
+    col.Add global_policy_list.navins_uk_old
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_uk_solutions_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_uk_solutions
+    col.Add global_policy_list.navins_uk_solutions
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub cmd_usa_Click()
+    Load.check_conn_and_variables
+    Dim col As New Collection
+    global_policy_list.update_navins_home_button global_policy_list.navins_usa
+    col.Add global_policy_list.navins_usa
+    utilities.paint_control Me.name, col
+    fix_rs.global_policy_list_f
+End Sub
+Private Sub comSector_AfterUpdate()
+    Load.check_conn_and_variables
+    If Me!comSector = 111 Then GoTo outro ' 111 is _All
+        
+    'populate com_sub_sector based on selection
+    Dim str_sql As String, rs As ADODB.Recordset
+    'remove existing items
+    With Me!com_sub_sector
+        Do While .ListCount > 0
+            .RemoveItem (0)
+        Loop
+        .AddItem "-1;_All"
+        str_sql = "SELECT sector_id id, sector_name menu_item FROM " & sources.sectors_table & " WHERE parent_sector_id = " & Me!comSector & " ORDER BY sector_name"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            Do While rs.EOF = False
+                .AddItem rs!id & ";" & rs!menu_item
+                rs.MoveNext
+            Loop
+        rs.Close
+        .Value = -1
+    End With
+outro:
+    If Not rs Is Nothing Then
+        If rs.State = 1 Then rs.Close
+        Set rs = Nothing
+    End If
+    Exit Sub
+err_handler:
+    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
+        & "Error number: " & Err.Number & vbNewLine _
+        & "Error description: " & Err.Description & vbNewLine _
+        & "Where: deal_details_f.target_super_sector_id_AfterUpdate()" & vbNewLine _
+        & "Parameters: me!dela_id = " & Me!deal_id & vbNewLine _
+        & "App: Stella UW Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
+    GoTo outro
+End Sub
+
+Private Sub date_month_end_AfterUpdate()
+    If global_policy_list.date_control = True Then fix_rs.global_policy_list_f
+End Sub
+
+Private Sub date_month_start_AfterUpdate()
+    If global_policy_list.date_control = True Then fix_rs.global_policy_list_f
+End Sub
+
+Private Sub date_year_end_AfterUpdate()
+    If global_policy_list.date_control = True Then fix_rs.global_policy_list_f
+End Sub
+
+Private Sub date_year_start_AfterUpdate()
+    If global_policy_list.date_control = True Then fix_rs.global_policy_list_f
+End Sub
+
+Private Sub deal_name_search_AfterUpdate()
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub Form_Close()
+    global_policy_list.init
+End Sub
+
+Private Sub cmd_export_Click()
+    open_forms.working_on_it_f "Working on it!"
+    Load.check_conn_and_variables
+    GenerateReports.global_policy_extract Me.RecordSource
+    DoCmd.Close acForm, "working_on_it_f"
+End Sub
+Private Sub cmdAllNone_Click()
+    Load.check_conn_and_variables
+    Dim navins_home As cls_field
+    If global_policy_list.navins_denmark.field_value = True Then
+        'turn all off
+        For Each navins_home In global_policy_list.col_navins_homes
+            With navins_home
+                Debug.Print .field_name
+                .field_value = False
+                .font_color = Load.colors.black
+                .field_bg_color = Load.colors.inactive_navins_home
+                .field_caption = Split(.field_caption, ":")(0) & ": off"
+            End With
+        Next navins_home
+    Else
+        'turn all on
+        For Each navins_home In global_policy_list.col_navins_homes
+            With navins_home
+                .field_value = True
+                .font_color = Load.colors.white
+                .field_bg_color = Load.colors.active_navins_home
+                .field_caption = Split(.field_caption, ":")(0) & ": on"
+            End With
+        Next navins_home
+    End If
+    utilities.paint_control Me.name, global_policy_list.col_navins_homes
+End Sub
+
+Private Sub FixCountryColors(ByVal strCountry As String)
+    Load.check_conn_and_variables
+    If Controls(strCountry).BackColor = Load.colors.inactive_filter_bg Then
+        Controls(strCountry).BackColor = colors.active_filter_bg
+        Controls(strCountry).ForeColor = colors.white
+    Else
+        Controls(strCountry).BackColor = colors.inactive_filter_bg
+        Controls(strCountry).ForeColor = colors.black
+    End If
+End Sub
+Private Sub fix_deal_list_order(ByVal data_field As String)
+    Load.check_conn_and_variables
+    Dim str_sql() As String
+    str_sql = Split(Me.RecordSource, "WHERE")
+    str_sql = Split(str_sql(1), "ORDER")
+    Dim str_direction As String
+    Dim str_control As String
+    str_control = "sort_" & data_field
+    If Me.Controls(str_control).Caption = "<<<" Then
+        Me.Controls(str_control).Caption = ">>>"
+        str_direction = "ASC"
+    Else
+        Me.Controls(str_control).Caption = "<<<"
+        str_direction = "DESC"
+    End If
+    open_forms.deal_list_f
+    Central.update_deal_list_f str_sql(0) & " ORDER BY " & data_field & " " & str_direction
+End Sub
+Private Sub sort_create_date_Click()
+    fix_deal_list_order "create_date"
+End Sub
+
+Private Sub sort_budget_home_Click()
+    Load.check_conn_and_variables
+    global_policy_list.sort_field = "budget_home"
+    If global_policy_list.sort_order = "ASC" Then
+        global_policy_list.sort_order = "DESC"
+        sort_budget_home.Caption = ">>>"
+    Else
+        global_policy_list.sort_order = "ASC"
+        sort_budget_home.Caption = "<<<"
+    End If
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub sort_deal_name_Click()
+    Load.check_conn_and_variables
+    global_policy_list.sort_field = "deal_name"
+    If global_policy_list.sort_order = "ASC" Then
+        global_policy_list.sort_order = "DESC"
+        sort_deal_name.Caption = ">>>"
+    Else
+        global_policy_list.sort_order = "ASC"
+        sort_deal_name.Caption = "<<<"
+    End If
+    fix_rs.global_policy_list_f
+End Sub
+Private Sub sort_ev_eur_Click()
+    fix_deal_list_order "ev_eur"
+End Sub
+Private Sub sort_inception_date_Click()
+    Load.check_conn_and_variables
+    global_policy_list.sort_field = "inception_date"
+    If global_policy_list.sort_order = "ASC" Then
+        global_policy_list.sort_order = "DESC"
+        sort_inception_date.Caption = ">>>"
+    Else
+        global_policy_list.sort_order = "ASC"
+        sort_inception_date.Caption = "<<<"
+    End If
+    fix_rs.global_policy_list_f
+End Sub
+Private Sub sort_policy_limit_Click()
+    Load.check_conn_and_variables
+    global_policy_list.sort_field = "policy_limit"
+    If global_policy_list.sort_order = "ASC" Then
+        global_policy_list.sort_order = "DESC"
+        sort_policy_limit.Caption = ">>>"
+    Else
+        global_policy_list.sort_order = "ASC"
+        sort_policy_limit.Caption = "<<<"
+    End If
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub sort_policy_no_Click()
+    Load.check_conn_and_variables
+    global_policy_list.sort_field = "policy_no"
+    If global_policy_list.sort_order = "ASC" Then
+        global_policy_list.sort_order = "DESC"
+        sort_policy_no.Caption = ">>>"
+    Else
+        global_policy_list.sort_order = "ASC"
+        sort_policy_no.Caption = "<<<"
+    End If
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub sort_policy_premium_Click()
+    Load.check_conn_and_variables
+    global_policy_list.sort_field = "policy_premium"
+    If global_policy_list.sort_order = "ASC" Then
+        global_policy_list.sort_order = "DESC"
+        sort_policy_premium.Caption = ">>>"
+    Else
+        global_policy_list.sort_order = "ASC"
+        sort_policy_premium.Caption = "<<<"
+    End If
+    fix_rs.global_policy_list_f
+End Sub
+
+Private Sub sort_total_rp_limit_on_deal_eur_Click()
+    Load.check_conn_and_variables
+    global_policy_list.sort_field = "total_rp_limit_on_deal_eur"
+    If global_policy_list.sort_order = "ASC" Then
+        global_policy_list.sort_order = "DESC"
+        sort_total_rp_limit_on_deal_eur.Caption = ">>>"
+    Else
+        global_policy_list.sort_order = "ASC"
+        sort_total_rp_limit_on_deal_eur.Caption = "<<<"
+    End If
+    fix_rs.global_policy_list_f
+End Sub
+Private Sub sort_total_rp_premium_on_deal_eur_Click()
+    Load.check_conn_and_variables
+    global_policy_list.sort_field = "total_rp_premium_on_deal_eur"
+    If global_policy_list.sort_order = "ASC" Then
+        global_policy_list.sort_order = "DESC"
+        sort_total_rp_premium_on_deal_eur.Caption = ">>>"
+    Else
+        global_policy_list.sort_order = "ASC"
+        sort_total_rp_premium_on_deal_eur.Caption = "<<<"
+    End If
+    fix_rs.global_policy_list_f
+End Sub
+
+

@@ -1,0 +1,410 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_MenuMainF"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+
+Private Sub cmd_add_change_broker_firms_Click()
+    Load.check_conn_and_variables
+    open_forms.broker_firms_f
+End Sub
+Private Sub cmd_add_change_broker_persons_Click()
+    Load.check_conn_and_variables
+    open_forms.broker_persons_f
+End Sub
+Private Sub cmd_add_change_countries_Click()
+    Load.check_conn_and_variables
+    With Load.current_uw
+        If .can_change_jurisdictions_id = menu_list.yes Or .is_dev_id = menu_list.yes Then
+            open_forms.jurisdictions_f
+        Else
+            MsgBox "Only regional leads may change jurisdictions.", , "No permission"
+        End If
+    End With
+End Sub
+Private Sub cmd_add_change_financial_advisors_Click()
+    Load.check_conn_and_variables
+    open_forms.financial_advisors_f
+End Sub
+Private Sub cmd_add_change_insurers_Click()
+    MsgBox "Insurers are managed from 'CM Admin', which is a separate app." & vbNewLine & vbNewLine _
+        & "You can access it by clicking on the 'CM Admin' button.", , "You need to go to CM Admin"
+End Sub
+Private Sub cmd_add_change_law_firms_Click()
+    Load.check_conn_and_variables
+    open_forms.law_firms_f
+End Sub
+Private Sub cmd_add_change_lawyers_Click()
+    Load.check_conn_and_variables
+    open_forms.lawyers_f
+End Sub
+
+Private Sub cmd_awac_excels_Click()
+    Load.check_conn_and_variables
+    open_forms.awac_excels_f
+End Sub
+
+Private Sub cmd_brands_Click()
+    Load.check_conn_and_variables
+    open_forms.brands_f
+End Sub
+Private Sub cmd_budget_all_Click()
+    Load.check_conn_and_variables
+    If Me!budget_year_all = "" Or IsNull(Me!budget_year_all) = True Then
+        MsgBox "You need to provide a year in the drop down list.", , "No budget year provided"
+        Exit Sub
+    End If
+    open_forms.working_on_it_f "Preparing the budget. It'll be done in two shakes of a lamb's tail."
+    Budget.call_global_budget CLng(Me!budget_year_all)
+    open_forms.working_on_it_f__close
+End Sub
+
+Private Sub cmd_deal_log_Click()
+    Const proc_name As String = "MenuMainF.cmd_deal_log.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    open_forms.deal_log
+    
+outro:
+    Load.call_stack = ""
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub cmd_generate_report_Click()
+    Const deals_with_missing_actions As Integer = 4
+    Const submissions_report As Integer = 5
+    Const hit_ratio_report As Integer = 7
+    Const guide_rols_report As Integer = 8
+    
+    On Error GoTo err_handler
+    If is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    
+    'check that required input is proived
+    If Me!report_type = "" Or IsNull(Me!report_type) Or Me!from_date = "" Or Me!to_date = "" Then
+        MsgBox "You must choose dates and a report type.", , "Missing input"
+        Exit Sub
+    End If
+    
+    'generate report
+    open_forms.working_on_it_f "Working on it!"
+    Dim str_sql As String
+    Dim rs As ADODB.Recordset
+    Dim arr() As Variant
+    Dim int_count As Long, int_column_count As Long, i As Long, y As Long
+    Dim app As Excel.Application, wb As Workbook, ws As Worksheet
+    Dim app_access As Access.Application, app_access_path As String
+    app_access_path = Load.system_info.system_paths.common_path & "reports.accdb"
+    
+    If Me!report_type = deals_with_missing_actions Then
+        'bound deals with missing actions
+        str_sql = "SELECT * FROM stella_common.bound_deals_without_rr_v WHERE (" _
+            & "are_emails_filed_id = 94" _
+            & " OR rr_done = 94" _
+            & " OR NOT deal_status_id = 436" _
+            & " OR CounselInvoiceHandled = 94" _
+            & " OR VDRReceived = 94" _
+            & " OR ClosingBooked = 94" _
+            & " OR (signing_invoice_amount > 0 AND signing_premium_received_date IS NULL)" _
+            & " OR (closing_invoice_amount > 0 AND closing_premium_received_date IS NULL)" _
+            & ") AND Year(inception_date) >= " & Year(Me!from_date) & " AND Year(inception_date) <= " & Year(Me!to_date)
+        
+        Set app_access = CreateObject("Access.Application")
+        With app_access
+            .OpenCurrentDatabase app_access_path, False
+            .Visible = False
+            .Run "reports.generate_report_for_deals_with_missing_actions", str_sql
+            .Quit
+        End With
+    ElseIf Me!report_type = submissions_report Then
+        'submission report
+        'Prepare data
+        'find number of regions
+        'UPDATE. Dynamic solution proved difficult, so hard coding regions
+            Dim region_list As Scripting.Dictionary
+            Set region_list = New Scripting.Dictionary
+            i = 1
+            region_list.Add i, "Denmark": i = i + 1 '76
+            region_list.Add i, "Norway": i = i + 1 '77
+            region_list.Add i, "Sweden": i = i + 1 '78
+            region_list.Add i, "Dach": i = i + 1 '79
+            region_list.Add i, "UK": i = i + 1 '81
+            region_list.Add i, "Finland": i = i + 1 '82
+            region_list.Add i, "Benelux": i = i + 1 '83
+            region_list.Add i, "AsiaPac": i = i + 1 '86
+            region_list.Add i, "Med": i = i + 1 '87
+            region_list.Add i, "USA" '434
+            Dim region_count As Integer, region_space As Integer
+            region_space = 3
+            region_count = i + region_space
+            'Convert RPEnity to cell location
+            Dim region_conversion As Scripting.Dictionary
+            Set region_conversion = New Scripting.Dictionary
+            i = 1
+            With region_conversion
+                .Add 76, i: i = i + 1
+                .Add 77, i: i = i + 1
+                .Add 78, i: i = i + 1
+                .Add 79, i: i = i + 1
+                .Add 81, i: i = i + 1
+                .Add 82, i: i = i + 1
+                .Add 83, i: i = i + 1
+                .Add 86, i: i = i + 1
+                .Add 87, i: i = i + 1
+                .Add 434, i: i = i + 1
+            End With
+        'add data
+        str_sql = "SELECT deal_id, create_date, budget_home_id, budget_home, MONTH(create_date) month_number FROM " & Load.sources.deals_view _
+            & " WHERE Year(create_date) > 2017 AND budget_home_id IS NOT NULL"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            rs.MoveLast
+            rs.MoveFirst
+            Dim record_count As Long
+            record_count = CLng(rs.RecordCount)
+            'Establish array for data
+            Dim int_height As Integer, int_width As Integer
+            int_height = 3 + (Year(Date) - 2018 + 1) * (2 + region_count)
+            int_width = 14
+            Dim data_input() As Variant
+            ReDim data_input(1 To int_height, 1 To int_width)
+            'Put data into array
+            data_input(1, 1) = "Submission count for M&A per " & Date
+            Dim z As Integer
+            y = 0: z = 0
+            Dim current_row As Long
+            ' for each year, add headings (year, months, and one row per region) and data
+            For y = 1 To (Year(Date) - 2018) + 1
+                current_row = 3 + region_count * (y - 1)
+                ' add year
+                data_input(current_row, 1) = 2018 + (y - 1)
+                'add months
+                data_input(current_row, 2) = "Jan"
+                data_input(current_row, 3) = "Feb"
+                data_input(current_row, 4) = "Mar"
+                data_input(current_row, 5) = "Apr"
+                data_input(current_row, 6) = "May"
+                data_input(current_row, 7) = "Jun"
+                data_input(current_row, 8) = "Jul"
+                data_input(current_row, 9) = "Aug"
+                data_input(current_row, 10) = "Sep"
+                data_input(current_row, 11) = "Oct"
+                data_input(current_row, 12) = "Nov"
+                data_input(current_row, 13) = "Dec"
+                data_input(current_row, 14) = "Total"
+                'add regions
+                For i = 1 To region_count - region_space
+                    data_input(current_row + i, 1) = region_list(i)
+                    data_input(current_row + i, 14) = "=SUM(RC[-12] : RC[-1])"
+                Next i
+            Next y
+            'add submissions
+            Dim data_row As Long, data_column As Long
+            Do Until rs.EOF = True
+                data_row = 3 + region_count * (Year(rs!create_date) - 2018) + region_conversion(CInt(rs!budget_home_id))
+                data_column = Month(rs!create_date) + 1
+                data_input(data_row, data_column) = data_input(data_row, data_column) + 1
+                rs.MoveNext
+            Loop
+        rs.Close: Set rs = Nothing
+        Dim appexcel As Excel.Application
+        Set appexcel = New Excel.Application
+        appexcel.Visible = True
+        appexcel.WindowState = xlMaximized
+        Set wb = appexcel.Workbooks.Add
+        wb.Activate
+        Set ws = appexcel.Worksheets.Add
+        With ws
+            .name = "Stella"
+            'Create column names and format spreadsheet
+            .Range("a1:e1").Merge
+            .Range("a1").HorizontalAlignment = xlLeft
+            .Range("a1:n200").Font.name = "Montserrat"
+            .Range("a1:n200").Font.Size = 10
+            .Columns(1).ColumnWidth = 16
+        End With
+        'Copy array to excel. Make sure range area is same as array size
+        ws.Range(ws.Range("a1"), ws.Cells(int_height, int_width)) = data_input
+        'For reasons beyond me, the below sometimes throws an error
+        On Error Resume Next
+        ws.Activate
+        ActiveWindow.DisplayGridlines = False
+        On Error GoTo err_handler
+    ElseIf Me!report_type = guide_rols_report Then
+        Set app_access = CreateObject("Access.Application")
+        With app_access
+            .OpenCurrentDatabase app_access_path, False
+            .Visible = False
+            .Run "reports.prepare_guide_rol_extract"
+            .Quit
+        End With
+    End If
+outro:
+    DoCmd.Close acForm, "working_on_it_f"
+    Exit Sub
+err_handler:
+    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
+        & "Error number: " & Err.Number & vbNewLine _
+        & "Error description: " & Err.Description & vbNewLine _
+        & "Where: MenuMainF.cmd_generate_report" & vbNewLine _
+        & "Parameters: report type = " & Me!report_type & vbNewLine _
+        & "App: Stella Admin Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
+    GoTo outro:
+End Sub
+
+Private Sub cmd_global_deal_list_Click()
+    Load.check_conn_and_variables
+    open_forms.deal_list_f
+    Central.update_deal_list_f "(deal_status_id=1 OR deal_status_id=2 OR deal_status_id=3 OR deal_status_id=4 OR deal_status_id=5)"
+End Sub
+
+Private Sub cmd_global_policy_list_Click()
+    Load.check_conn_and_variables
+    open_forms.global_policy_list_f
+    
+    global_policy_list.set_default_values
+    fix_rs.global_policy_list_f
+End Sub
+Private Sub cmd_open_cm_admin_Click()
+    Load.check_conn_and_variables
+    Application.FollowHyperlink Load.system_info.system_paths.cm_admin
+End Sub
+
+Private Sub cmd_pricing_guidelines_Click()
+    Load.check_conn_and_variables
+    open_forms.pricing_guidelines_f
+End Sub
+
+Private Sub cmd_service_messages_Click()
+    Load.check_conn_and_variables
+    open_forms.service_messages_f
+End Sub
+
+Private Sub cmd_system_dashboard_Click()
+    Load.call_stack = "MenuMainF.cmd_system_dashboard.Click"
+    Load.check_conn_and_variables
+    If Load.current_uw.is_dev_id <> menu_list.yes Then
+        MsgBox "Only developers have access to the System Dashboard.", , "No access"
+        GoTo outro
+    End If
+    
+    open_forms.system_dashboard_f
+    global_vars.system_dashboard.refresh
+    
+    Debug.Print Load.call_stack
+    Load.call_stack = ""
+outro:
+    Exit Sub
+    
+End Sub
+
+Private Sub cmd_templates_Click()
+    Load.check_conn_and_variables
+    open_forms.templates_f
+End Sub
+
+Private Sub cmd_update_us_deal_statuses_Click()
+    Load.check_conn_and_variables
+    Dim str_sql As String
+    
+    str_sql = "UPDATE stella_us." & Load.sources.deals_table & " SET deal_status_id = 7, Status = 7 WHERE DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) > create_date AND deal_status_id = 1"
+    conn.Execute str_sql
+    
+    str_sql = "UPDATE stella_us." & Load.sources.deals_table & " SET deal_status_id = 9, Status = 9 WHERE " _
+    & "(DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY) > nbi_deadline OR DATE_SUB(CURRENT_DATE, INTERVAL 90 DAY) > nbi_date) " _
+    & " AND deal_status_id = 2"
+    
+    conn.Execute str_sql
+End Sub
+
+Private Sub cmd_uws_Click()
+    Load.check_conn_and_variables
+    If Load.current_uw.can_change_uws_id = menu_list.yes Or Load.current_uw.is_dev_id = menu_list.yes Then
+        open_forms.uws_f
+    Else
+        MsgBox "You don't have permission to add or update underwriters. Please reach out to a Regional Lead", , "Missing permissions"
+    End If
+End Sub
+Private Sub cmdFixWorking_Click()
+    Load.check_conn_and_variables
+    Central.add_currencies_to_currencies_t
+    Central.auto_archiving
+    Working.entry
+End Sub
+
+Private Sub Form_Close()
+    Load.check_conn_and_variables
+    If current_uw.uw_id <> 2 Then
+        DoCmd.Quit
+    End If
+End Sub
+Private Sub Form_Load()
+    'intro
+    Load.check_conn_and_variables
+    On Error GoTo err_handler
+    Load.call_stack = "MenuMainF.Form.Load"
+    Me.Picture = Load.form_backgrounds.MenuMainF
+    
+    ' Move and minimize access window.
+    windows_apis.AccessMoveSize 0, 0, 250, 10
+    DoCmd.MoveSize Right:=0, Down:=0, Width:=16000, Height:=10000
+    
+    'set default values and propertoes
+    Me!from_date = "01-01-" & Year(Date)
+    Me!to_date = "31-12-" & Year(Date)
+    Forms("MenuMainF").Caption = "Main Menu"
+    
+    'add report types
+    With Me!report_type
+        Do While .ListCount > 0
+            .RemoveItem (0)
+        Loop
+        
+        .AddItem 4 & ";Missing closing info (excel)"
+        .AddItem 5 & ";Submission report (excel)"
+        .AddItem 7 & ";Hit ratio report (excel)"
+        .AddItem 8 & ";Guide rol extract (excel)"
+    End With
+    
+    'Fix year list for budget for erveryone
+    Dim i As Integer
+    With Me.Controls("budget_year_all")
+        ' remove existing items. Wish .clear was a thing :)
+        Do While .ListCount > 0
+            .RemoveItem (0)
+        Loop
+        For i = 2015 To Year(Now)
+            .AddItem i
+        Next i
+    End With
+    
+outro:
+    Exit Sub
+    
+err_handler:
+
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .routine_name = "MenuMainF.Form.Load"
+        .milestone = ""
+        .params = ""
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+End Sub
+

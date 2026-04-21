@@ -1,0 +1,158 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_pricing_guidelines_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub cmd_show_all_Click()
+    Load.check_conn_and_variables
+    fix_rs.pricing_guidelines_f
+End Sub
+Private Sub cmd_cancel_Click()
+    DoCmd.Close acForm, Me.name
+End Sub
+Private Sub cmd_change_Click()
+    'intro
+    On Error GoTo err_handler
+    Load.check_conn_and_variables
+
+    Dim str_form As String
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    
+    'Populate change fields with data
+    Dim str_sql As String, i As Integer
+    str_sql = "SELECT pricing_id, rate, super_sector_id, jurisdiction_id FROM " & sources.pricing_guidelines_table & " WHERE pricing_id = " & Me!pricing_id
+    Dim rs As ADODB.Recordset
+    Set rs = utilities.create_adodb_rs(conn, str_sql)
+        With Me
+            For i = 1 To arr_fields(0, 0)
+                .Controls("header_" & arr_fields(i, 0)) = rs.Fields(arr_fields(i, 0))
+            Next i
+        End With
+    rs.Close
+    Set rs = Nothing
+    Me!cmd_add.Caption = "update"
+    Exit Sub
+err_handler:
+    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
+        & "Error number: " & Err.Number & vbNewLine _
+        & "Error description: " & Err.Description & vbNewLine _
+        & "Where: pricing_guidelines_f.cmd_change_Click" & vbNewLine _
+        & "Parameters: me!pricing_id" & Me!pricing_id & vbNewLine _
+        & "App: Stella Admin Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
+
+End Sub
+Private Sub cmd_add_Click()
+    'intro
+    Load.check_conn_and_variables
+    
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    Dim boo_cancel As Boolean
+    boo_cancel = False
+    Dim i As Integer
+    For i = 1 To arr_fields(0, 0)
+        If arr_fields(i, 1) = 1 And IsNull(Me.Controls("header_" & arr_fields(i, 0))) Then
+            Me.Controls("header_" & arr_fields(i, 0)).BackColor = Load.colors.yellow
+            boo_cancel = True
+        End If
+    Next i
+    
+    If boo_cancel = True Then
+        Exit Sub
+    End If
+    
+    Dim str_sql As String, rs As ADODB.Recordset
+    'check if rate already exist for this sector for this region. If yes, set it to inactive
+    str_sql = "SELECT pricing_id FROM " & Load.sources.pricing_guidelines_table _
+        & " WHERE is_deleted = 0 AND jurisdiction_id = " & Me!header_jurisdiction_id & " AND super_sector_id = " & Me!header_super_sector_id
+    Set rs = utilities.create_adodb_rs(conn, str_sql)
+    With rs
+        If rs.RecordCount > 0 Then
+            Do Until rs.EOF
+                str_sql = "UPDATE " & Load.sources.pricing_guidelines_table & " SET is_active = 94 WHERE pricing_id = " & rs!pricing_id
+                conn.Execute str_sql
+                rs.MoveNext
+            Loop
+        End If
+        .Close
+    End With
+    
+    'Insert data into table
+    'first, get id. If new, create new record
+    Dim id As Long
+    If IsNull(Me!header_pricing_id) = True Or Me!header_pricing_id = "" Then
+        str_sql = "INSERT INTO " & Load.sources.pricing_guidelines_table & "(is_deleted) VALUES (0)"
+        conn.Execute str_sql
+        str_sql = "SELECT pricing_id FROM " & Load.sources.pricing_guidelines_table & " ORDER BY pricing_id DESC LIMIT 1"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            id = rs!pricing_id
+        rs.Close: Set rs = Nothing
+    Else
+        id = Me!header_pricing_id
+    End If
+    
+    str_sql = "UPDATE " & Load.sources.pricing_guidelines_table & " SET " _
+        & "rate = " & Replace(CStr(Me!header_rate), ",", ".") _
+        & ", super_sector_id = " & Me!header_super_sector_id _
+        & ", jurisdiction_id = " & Me!header_jurisdiction_id _
+        & ", is_active = 93" _
+        & " WHERE pricing_id = " & id
+
+    conn.Execute str_sql, adExecuteNoRecords
+    'Update recordsource
+    fix_rs.pricing_guidelines_f Me!header_jurisdiction_id
+    'Reset form
+    With Me
+        For i = 1 To arr_fields(0, 0)
+            If arr_fields(i, 2) = 1 Then
+                'reset only if reset property is 1
+                .Controls("header_" & arr_fields(i, 0)) = ""
+            End If
+            .Controls("header_" & arr_fields(i, 0)).BackColor = colors.white
+        Next i
+    End With
+    Me!cmd_add.Caption = "Add"
+End Sub
+Private Function declare_fields()
+    Dim i As Integer, arr_fields(0 To 30, 0 To 2) As Variant
+    'For the second value, 0 is the field name and 1 is 0 if optional and 1 if mandatory.
+    Const field_name As Integer = 0
+    Const is_mandatory As Integer = 1
+    Const reset_upon_adding As Integer = 2
+    i = 1
+    arr_fields(1, field_name) = "rate"
+    arr_fields(i, is_mandatory) = 1
+    arr_fields(i, reset_upon_adding) = 1
+    i = i + 1
+    arr_fields(i, field_name) = "super_sector_id"
+    arr_fields(i, is_mandatory) = 1
+    arr_fields(i, reset_upon_adding) = 1
+    i = i + 1
+    arr_fields(i, field_name) = "jurisdiction_id"
+    arr_fields(i, is_mandatory) = 1
+    arr_fields(i, reset_upon_adding) = 0
+    i = i + 1
+    arr_fields(i, field_name) = "pricing_id"
+    arr_fields(i, is_mandatory) = 0
+    arr_fields(i, reset_upon_adding) = 1
+    i = i + 1
+    
+    arr_fields(0, 0) = i - 1
+    declare_fields = arr_fields
+End Function
+Private Sub header_jurisdiction_id_AfterUpdate()
+    Load.check_conn_and_variables
+    fix_rs.pricing_guidelines_f Me!header_jurisdiction_id
+End Sub
+Private Sub header_super_sector_id_AfterUpdate()
+    Load.check_conn_and_variables
+    fix_rs.pricing_guidelines_f 0, Me!header_super_sector_id
+End Sub

@@ -1,0 +1,188 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_law_firms_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+Private Sub cmd_change_Click()
+    Dim proc_name As String
+    proc_name = "law_firms_f.cmd_change.Click"
+    Load.call_stack = proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim arr_fields() As Variant
+    Dim i As Integer
+    Dim rs As ADODB.Recordset
+    Dim str_form As String
+    Dim str_sql As String
+    
+    arr_fields = declare_fields
+    
+    str_sql = "SELECT * FROM " & sources.law_firms_view & " WHERE law_firm_id = " & Me!id
+    Set rs = utilities.create_adodb_rs(conn, str_sql)
+        With Me
+            For i = 0 To UBound(arr_fields)
+                If IsNull(rs.Fields(arr_fields(i, 0))) = False Then
+                    .Controls("header_" & arr_fields(i, 0)) = rs.Fields(arr_fields(i, 0))
+                End If
+            Next i
+        End With
+    rs.Close
+    cmd_add_change.Caption = "update"
+    
+outro:
+    Exit Sub
+err_handler:
+    GoTo outro
+End Sub
+Private Sub cmd_add_change_Click()
+    Dim proc_name As String
+    proc_name = "law_firms_f.cmd_add_change.Click"
+    Load.call_stack = proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo err_handler
+    
+    Load.check_conn_and_variables
+    
+    Dim boo_cancel As Boolean
+    Dim i As Integer
+    Dim input_controls() As Variant
+    Dim law_firm_id As Long
+    Dim rs As ADODB.Recordset
+    Dim sql_is_counsel As String
+    Dim str_recordset As String
+    Dim str_sql As String
+    
+    str_recordset = Load.sources.law_firms_table
+    
+    input_controls = declare_fields
+    
+    'Check that mandatory fields are populated
+    For i = 0 To UBound(input_controls)
+        If input_controls(i, 1) = 1 Then
+            If IsNull(Me.Controls("header_" & input_controls(i, 0))) = True _
+                Or IsEmpty(Me.Controls("header_" & input_controls(i, 0))) = True Or _
+                Me.Controls("header_" & input_controls(i, 0)) = "" Then
+                Me.Controls("header_" & input_controls(i, 0)).BackColor = colors.yellow
+                boo_cancel = True
+            End If
+        End If
+    Next i
+    If boo_cancel = True Then
+        GoTo outro
+    End If
+    
+    'first, get id. If new, create new record
+    If IsNull(Me!header_law_firm_id) = True Or Me!header_law_firm_id = "" Then
+        str_sql = "INSERT INTO " & str_recordset & "(is_deleted) VALUES (0)"
+        conn.Execute str_sql, adExecuteNoRecords
+        str_sql = "SELECT law_firm_id FROM " & str_recordset & " ORDER BY law_firm_id DESC LIMIT 1"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            law_firm_id = rs!law_firm_id
+        rs.Close
+    Else
+        law_firm_id = Me!header_law_firm_id
+    End If
+    
+    sql_is_counsel = ""
+    If IsNull(Me!header_is_counsel) = False Then
+        sql_is_counsel = ", is_counsel = " & Me!header_is_counsel
+    End If
+    
+    str_sql = "UPDATE " & str_recordset & " SET " _
+    & "FirmName = '" & Me!header_firm_name & "'" _
+    & ", brand = '" & Me!header_brand & "'" _
+    & ", comments = '" & Me!header_comments & "'" _
+    & ", jurisdiction = '" & Me!header_jurisdiction & "'" _
+    & sql_is_counsel _
+    & " WHERE law_firm_id = " & law_firm_id
+    
+    conn.Execute str_sql, adExecuteNoRecords
+    Me!cmd_add_change.Caption = "add"
+    
+    'Update recordsource
+    fix_rs.law_firms_f
+    
+    'empty input fields
+    With Me
+        For i = 0 To UBound(input_controls)
+            .Controls("header_" & input_controls(i, 0)) = ""
+            .Controls("header_" & input_controls(i, 0)).BackColor = colors.white
+        Next i
+    End With
+    
+outro:
+    If Not rs Is Nothing Then
+        If rs.State = 1 Then rs.Close
+        Set rs = Nothing
+    End If
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .call_stack = Load.call_stack
+        .routine_name = proc_name
+        .milestone = ""
+        .params = "str_sql = " & str_sql
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+End Sub
+Private Sub cmd_delete_Click()
+    Load.check_conn_and_variables
+    Dim str_message As String
+    Dim str_firm_name As String
+    str_firm_name = Nz(Me!firm_name, "")
+    str_message = "You are about to delete " & str_firm_name & ". Please confirm."
+    Dim answer As Variant
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        Exit Sub
+    Else
+        conn.Execute "UPDATE " & sources.law_firms_table & " SET is_deleted = 1 WHERE law_firm_id = " & Me!id
+        fix_rs.law_firms_f
+    End If
+End Sub
+Private Sub Form_Load()
+    DoCmd.MoveSize Right:=200, Down:=200, Width:=14000, Height:=8000
+End Sub
+Private Function declare_fields()
+    Dim i As Integer: i = 0
+    Dim arr_fields(0 To 5, 0 To 1) As Variant
+    'For the second value, 0 is the field name and 1 is 0 if optional and 1 if mandatory.
+    arr_fields(i, 0) = "firm_name"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "brand"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "jurisdiction"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "comments"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "law_firm_id"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "is_counsel"
+    arr_fields(i, 1) = 0: i = i + 1
+    declare_fields = arr_fields
+End Function
+Private Sub new_brand_AfterUpdate()
+    Me!new_brand.BackColor = colors.white
+End Sub
+Private Sub new_country_AfterUpdate()
+    Me!new_country.BackColor = colors.white
+End Sub
+Private Sub new_short_name_AfterUpdate()
+    Me!new_short_name.BackColor = colors.white
+End Sub

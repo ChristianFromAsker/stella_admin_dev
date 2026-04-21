@@ -1,0 +1,123 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_uws_role_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub budget_home_id_AfterUpdate()
+    Me!budget_home_id.BackColor = Load.colors.white
+End Sub
+
+Private Sub cmd_add_Click()
+    Const proc_name As String = "uws_role_f.cmd_add.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+
+    Dim end_date As String
+    Dim stop_proc As Boolean
+    Dim start_date As String
+    Dim str_sql As String
+    Dim uw_id As Long
+    
+    stop_proc = False
+    
+    If IsNull(Me!employee_role_start_date) = True Or Me!employee_role_start_date = "" Then
+        stop_proc = True
+        MsgBox "No start date provided.", , "Start date missing"
+    End If
+    If IsNull(Me!employee_role_id__employee_roles_t) = True Or Me!employee_role_id__employee_roles_t = "" Then
+        stop_proc = True
+        MsgBox "No role provided.", , "Role missing"
+    End If
+    If IsNull(Me!uw_id__underwriters_t) = True Or Me!uw_id__underwriters_t = "" Then
+        stop_proc = True
+        MsgBox "Could not find underwriter. Talk to TR IT.", , "Cannot find underwriter"
+    End If
+
+    If stop_proc = True Then
+        GoTo outro
+    End If
+    
+    uw_id = Me!uw_id__underwriters_t
+    employee_role_link_id = Me!employee_role_link_id
+    
+    start_date = utilities.generate_sql_date(Me!employee_role_start_date)
+    end_date = "NULL"
+    If IsNull(Me!employee_role_end_date) = False Then
+        If Me!employee_role_start_date <> "" Then end_date = "'" & utilities.generate_sql_date(Me!employee_role_end_date) & "'"
+    End If
+    
+    str_sql = "UPDATE " & Load.sources.employee_role_links_table _
+    & " SET" _
+    & " employee_role_id__employee_roles_t = " & Me!employee_role_id__employee_roles_t _
+    & ", employee_role_start_date = '" & start_date & "'" _
+    & ", employee_role_end_date = " & end_date _
+    & " WHERE uw_id__underwriters_t = " & Me!uw_id__underwriters_t & " AND employee_role_link_id = " & employee_role_link_id
+    
+    Load.conn.Execute str_sql
+    fix_rs.uws_f_refresh
+    DoCmd.Close acForm, Me.name
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "str_sql = " & str_sql, "", "", True
+    Resume outro
+End Sub
+
+Private Sub date_start_AfterUpdate()
+    Me!date_start.BackColor = Load.colors.white
+End Sub
+
+Private Sub email_AfterUpdate()
+    Const proc_name As String = "uws_add_f.email.AfterUpdate"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    user_management.init
+    
+    Dim username As String
+    With user_management.uw_data_controls
+        username = Me.Controls(.email.field_name)
+        username = Split(username, "@")(0)
+        Me.Controls(.username.field_name) = username
+    End With
+    Me!email.BackColor = Load.colors.white
+outro:
+    utilities.call_stack_remove_last_item
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub employee_role_id_AfterUpdate()
+    Me!employee_role_id.BackColor = Load.colors.white
+End Sub
+
+Private Sub nickname_AfterUpdate()
+    Me!nickname.BackColor = Load.colors.white
+End Sub
+
+Private Sub usertype_id_AfterUpdate()
+    Me!email.BackColor = Load.colors.white
+End Sub
+
+Private Sub uw_initials_AfterUpdate()
+    Me!uw_initials.BackColor = Load.colors.white
+End Sub
+
+Private Sub uw_name_AfterUpdate()
+    Me!uw_name.BackColor = Load.colors.white
+End Sub

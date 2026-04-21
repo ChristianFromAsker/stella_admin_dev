@@ -1,0 +1,68 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_extended_info_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+
+Private Sub cmd_add_change_Click()
+    'intro
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    Dim str_sql As String, rs As ADODB.Recordset
+    
+    'Insert data into table
+    str_sql = "UPDATE " & Load.sources.service_messages_table & " SET" _
+        & " extended_info = '" & Replace(Me!extended_info, "'", "''") & "'" _
+        & " WHERE message_id = " & Me!message_id
+    conn.Execute str_sql, adExecuteNoRecords
+    
+    'Update recordsource
+    fix_rs.service_messages_f
+    
+outro:
+    If Not rs Is Nothing Then
+        If rs.State = 1 Then rs.Close
+        Set rs = Nothing
+    End If
+    Exit Sub
+err_handler:
+    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
+        & "Error number: " & Err.Number & vbNewLine _
+        & "Error description: " & Err.Description & vbNewLine _
+        & "Where: service_messages_f.cmd_add_change" & vbNewLine _
+        & "Parameters: n/a" & vbNewLine _
+        & "App: CM Admin Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
+End Sub
+
+Private Sub cmd_preview_Click()
+    Load.check_conn_and_variables
+    Dim str_path As String
+    str_path = Load.system_info.system_paths.messages_path & "message_id_" & Me!message_id & ".html"
+    If Dir(str_path) <> "" Then
+        Application.FollowHyperlink str_path
+    End If
+End Sub
+
+Private Sub cmd_publish_html_Click()
+    Dim str_target_path, message_html As String
+    message_html = Me!extended_info_plain
+    str_target_path = Load.system_info.system_paths.messages_path & "message_id_" & Me!message_id & ".html"
+    Dim fs As Object, html_file As Object
+    Set fs = CreateObject("Scripting.FileSystemObject")
+    Set html_file = fs.CreateTextFile(str_target_path, True)
+    html_file.WriteLine message_html
+    html_file.Close
+    Set html_file = Nothing
+    Set fs = Nothing
+    
+End Sub
+
+Private Sub extended_info_plain_AfterUpdate()
+    Me!extended_info_rich = Me!extended_info_plain
+End Sub

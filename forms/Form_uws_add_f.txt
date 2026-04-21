@@ -1,0 +1,189 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_uws_add_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub budget_home_id_AfterUpdate()
+    Me!budget_home_id.BackColor = Load.colors.white
+End Sub
+
+Private Sub cmd_add_Click()
+    Const proc_name As String = "uws_add_f.cmd_add.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim add_field As Boolean
+    Dim col_fields As Collection
+    Dim form_field As cls_field
+    Dim new_user As Boolean
+    Dim rs As ADODB.Recordset
+    Dim stop_proc As Boolean
+    Dim str_sql As String
+    Dim str_user_name As String
+    Dim uw_id As Long
+    
+    stop_proc = False
+    
+    user_management.init
+    
+    'Check that necessary fields are populated
+    Set col_fields = New Collection
+    For Each form_field In user_management.col_uw_data_controls
+        add_field = False
+        If form_field.is_mandatory = True And form_field.field_visible = True Then
+            If IsNull(Me.Controls(form_field.field_name)) = True Then
+                add_field = True
+            ElseIf Me.Controls(form_field.field_name) = "" Then
+                add_field = True
+            End If
+            If add_field = True Then
+                form_field.field_bg_color = Load.colors.yellow
+                col_fields.Add form_field
+            End If
+        End If
+    Next form_field
+    
+    If col_fields.Count > 0 Then
+        utilities.paint_control Me.name, col_fields
+        GoTo outro
+    End If
+    
+    'Check that new_uw_initials has exactly 5 letters
+    If Len(Me!uw_initials) <> 5 Then
+        Me!uw_initials.BackColor = Load.colors.yellow
+        GoTo outro
+    End If
+    
+    If IsNumeric(Me.Controls(user_management.uw_data_controls.uw_id.field_name)) = False Then
+        MsgBox "Something is not right. Snip this message and the data you were trying to enter to Christian and Tom", , "issue with uw_id"
+        stop_proc = True
+    End If
+    
+    If stop_proc = True Then
+        GoTo outro
+    End If
+    
+    uw_id = Me.Controls(user_management.uw_data_controls.uw_id.field_name)
+    str_user_name = Me.Controls(user_management.uw_data_controls.username.field_name)
+    
+    'check if this is a new user
+    str_sql = "SELECT uw_id, is_deleted FROM " & Load.sources.uws_table & " WHERE uw_id = " & uw_id
+    Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+    new_user = False
+    If rs!is_deleted = 1 Then new_user = True
+    rs.Close
+    Set rs = Nothing
+    
+    If new_user = True Then
+        If user_management.does_user_exist(str_user_name) = True Then
+            MsgBox "This user is already created. If you cannot find it, talk to Tom or Christian.", , "User exists"
+            GoTo outro
+        End If
+    End If
+    
+    'Add data to record
+    With user_management.uw_data_controls
+        str_sql = "UPDATE " & Load.sources.uws_table & " SET " _
+        & "uw_initials = '" & Me.Controls(.uw_initials.field_name) & "'" & vbNewLine _
+        & ", uw_name = '" & Me.Controls(.uw_name.field_name) & "'" & vbNewLine _
+        & ", is_employed_id = " & Me.Controls(.is_employed_id.field_name) & vbNewLine _
+        & ", start_date = '" & utilities.generate_sql_date(Me.Controls(.date_start.field_name)) & "'" & vbNewLine _
+        & ", nickname = '" & Me.Controls(.nickname.field_name) & "'" & vbNewLine _
+        & ", user_type_id = " & Me.Controls(.usertype.field_name) _
+        & ", user_name = '" & Me.Controls(.username.field_name) & "'" _
+        & ", email = '" & Me.Controls(.email.field_name) & "'" _
+        & ", budget_home_id = " & Me.Controls(.budget_home_id.field_name) _
+        & ", has_admin_access_id = " & Me.Controls(.has_admin_access_id.field_name) _
+        & ", can_change_general_id = " & Me.Controls(.can_change_general_id.field_name) _
+        & ", can_change_jurisdictions_id = " & Me.Controls(.can_change_jurisdictions_id.field_name) _
+        & ", is_dev_id = " & Me.Controls(.is_dev_id.field_name) _
+        & ", can_change_uws_id = " & Me.Controls(.can_change_uws_id.field_name) _
+        & ", can_change_budget_home_id = " & Me.Controls(.can_change_budget_home_id.field_name) _
+        & ", is_regional_lead_id = " & Me.Controls(.is_regional_lead_id.field_name) _
+        & ", is_deleted = 0" _
+        & " WHERE uw_id = " & uw_id
+    End With
+    
+    conn.Execute str_sql
+    
+    If new_user = True Then
+        With user_management.uw_data_controls
+            user_management.copy_cm_and_stella uw_id, Me.Controls(.uw_initials.field_name)
+            
+            str_sql = "INSERT INTO " & Load.sources.employee_role_links_table _
+            & " (uw_id__underwriters_t, employee_role_id__employee_roles_t, employee_role_start_date)" _
+            & "VALUES(" & uw_id & ", " _
+            & Me.Controls(.employee_role_id.field_name) & ", " _
+            & "'" & utilities.generate_sql_date(Me.Controls(.date_start.field_name)) & "')"
+        End With
+        Load.conn.Execute str_sql
+    End If
+    
+    fix_rs.uws_f_refresh
+    DoCmd.Close acForm, Me.name
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "str_sql = " & str_sql, "", "", True
+    Resume outro
+End Sub
+
+Private Sub date_start_AfterUpdate()
+    Me!date_start.BackColor = Load.colors.white
+End Sub
+
+Private Sub email_AfterUpdate()
+    Const proc_name As String = "uws_add_f.email.AfterUpdate"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    user_management.init
+    
+    Dim username As String
+    With user_management.uw_data_controls
+        username = Me.Controls(.email.field_name)
+        username = Split(username, "@")(0)
+        Me.Controls(.username.field_name) = username
+    End With
+    Me!email.BackColor = Load.colors.white
+outro:
+    utilities.call_stack_remove_last_item
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub employee_role_id_AfterUpdate()
+    Me!employee_role_id.BackColor = Load.colors.white
+End Sub
+
+Private Sub nickname_AfterUpdate()
+    Me!nickname.BackColor = Load.colors.white
+End Sub
+
+Private Sub usertype_id_AfterUpdate()
+    Me!email.BackColor = Load.colors.white
+End Sub
+
+Private Sub uw_initials_AfterUpdate()
+    Me!uw_initials.BackColor = Load.colors.white
+End Sub
+
+Private Sub uw_name_AfterUpdate()
+    Me!uw_name.BackColor = Load.colors.white
+End Sub

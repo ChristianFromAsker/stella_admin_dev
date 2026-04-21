@@ -1,0 +1,150 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_add_insurer_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+Private Sub cmd_cancel_Click()
+    DoCmd.Close acForm, Me.name
+End Sub
+Private Sub cmd_change_Click()
+    Load.check_conn_and_variables
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    
+    'Populate change form with data
+    Dim i As Integer
+    With Me
+        For i = 1 To arr_fields(0, 0)
+            .Controls("new_" & arr_fields(i, 0)) = Me.Controls(arr_fields(i, 0))
+            If arr_fields(i, 1) = 1 And IsNull(Me.Controls(arr_fields(i, 0))) Then
+                .Controls("new_" & arr_fields(i, 0)).BackColor = colors.yellow
+            End If
+        Next i
+    End With
+    
+End Sub
+Private Sub cmd_close_save_Click()
+    Load.check_conn_and_variables
+    
+    'Check that necessary fields are populated
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    Dim boo_cancel As Boolean
+    boo_cancel = False
+    Dim i As Integer
+    For i = 1 To arr_fields(0, 0)
+        If arr_fields(i, 1) = 1 And IsNull(Me.Controls("new_" & arr_fields(i, 0))) Then
+            Me.Controls("new_" & arr_fields(i, 0)).BackColor = colors.yellow
+            boo_cancel = True
+        End If
+    Next i
+    If boo_cancel = True Then
+        Exit Sub
+    End If
+    
+    'Insert data into table
+    'first, get id. If new, create new record
+    Dim str_sql As String, id As Long
+    If IsNull(Me!new_id) = True Or Me!new_id = "" Then
+        str_sql = "INSERT INTO " & Load.sources.insurers_table & "(is_deleted) VALUES (0)"
+        conn.Execute str_sql, adExecuteNoRecords
+        Dim rs As ADODB.Recordset
+        str_sql = "SELECT id FROM " & Load.sources.insurers_table & " ORDER BY id DESC LIMIT 1"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            id = rs!id
+        rs.Close: Set rs = Nothing
+    Else
+        id = Me!new_id
+    End If
+    
+    'update recordset
+    str_sql = "UPDATE " & Load.sources.insurers_table & " SET" _
+        & " insurer_legal_name = '" & Me!new_insurer_legal_name & "'" _
+        & ", insurer_business_name = '" & Me!new_insurer_business_name & "'" _
+        & ", insurer_type = " & Me!new_insurer_type _
+        & ", is_playing = " & Me!new_is_playing _
+        & " WHERE id = " & id
+    conn.Execute str_sql
+    
+    'Update recordset
+    fix_rs.insurers_f
+    
+    'Reset form
+    Dim str_form As String
+    With Me
+        For i = 1 To arr_fields(0, 0)
+            .Controls("new_" & arr_fields(i, 0)) = ""
+            .Controls("new_" & arr_fields(i, 0)).BackColor = colors.white
+        Next i
+    End With
+End Sub
+Private Sub cmd_delete_Click()
+    Load.check_conn_and_variables
+    Dim str_message As String
+    Dim str_firm_name As String
+    str_firm_name = Me!insurer_business_name
+    str_message = "You are about to delete " & str_firm_name & ". Please confirm."
+    Dim answer As Variant
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        Exit Sub
+    Else
+        conn.Execute "UPDATE " & Load.sources.insurers_table & " SET is_deleted = 1 WHERE id = " & Me!id
+        fix_rs.insurers_f
+    End If
+End Sub
+Private Sub Form_Load()
+    DoCmd.MoveSize Right:=200, Down:=200, Width:=11500, Height:=6000
+End Sub
+Private Function declare_fields()
+    Dim i As Integer
+    Dim arr_fields(0 To 5, 0 To 1) As Variant
+    'For the second value, 0 is the field name and 1 is 0 if optional and 1 if mandatory.
+    i = 1
+    arr_fields(i, 0) = "insurer_legal_name"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "insurer_business_name"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "is_playing"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "insurer_type"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "id"
+    arr_fields(i, 1) = 0: i = i + 1
+    
+    arr_fields(0, 0) = i - 1
+    declare_fields = arr_fields
+End Function
+Private Sub new_name_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_name.BackColor = colors.white
+End Sub
+
+Private Sub new_insurer_legal_name_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_insurer_legal_name.BackColor = Load.colors.white
+End Sub
+
+Private Sub new_insurer_type_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_insurer_type.BackColor = Load.colors.white
+End Sub
+Private Sub new_is_active_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_is_active.BackColor = Load.colors.white
+End Sub
+Private Sub new_is_playing_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_is_playing.BackColor = Load.colors.white
+End Sub
+Private Sub new_is_carrier_AfterUpdate()
+    Load.check_conn_and_variables
+    Me!new_is_carrier.BackColor = Load.colors.white
+End Sub
+

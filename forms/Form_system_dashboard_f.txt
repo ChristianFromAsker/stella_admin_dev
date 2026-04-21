@@ -1,0 +1,226 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_system_dashboard_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub cmd_dev_filter_Click()
+    Load.check_conn_and_variables
+    With global_vars.system_dashboard.cmd_show_devs
+        If .field_value = True Then
+            .field_value = False
+            .field_caption = "hidden"
+        Else
+            .field_value = True
+            .field_caption = "shown"
+        End If
+    End With
+    global_vars.system_dashboard.paint
+    
+    fix_rs.system_dashboard_f
+End Sub
+
+Private Sub cmd_expand_call_stack_Click()
+    MsgBox Me!call_stack, , "call stack"
+End Sub
+
+Private Sub cmd_expand_file_path_Click()
+    MsgBox Me!file_path, , "file path"
+End Sub
+Private Sub cmd_expand_milestone_Click()
+    MsgBox Me!milestone, , "milestone"
+End Sub
+
+Private Sub cmd_expand_params_Click()
+    MsgBox Me!params, , "params"
+End Sub
+
+Private Sub cmd_expand_routine_name_Click()
+    MsgBox Me!routine_name, , "routine name"
+End Sub
+
+Private Sub cmd_filter_closed_issues_Click()
+    Load.call_stack = "system_dashbaord_f.cmd_filter_closed_issues.click"
+    Load.check_conn_and_variables
+    With global_vars.system_dashboard.cmd_filter_closed_issues
+        If .field_value = False Then
+            .field_value = True
+            .field_caption = "shown"
+        Else
+            .field_value = False
+            .field_caption = "hidden"
+        End If
+    End With
+    global_vars.system_dashboard.paint
+    fix_rs.system_dashboard_f
+End Sub
+
+Private Sub cmd_refresh_Click()
+    Load.check_conn_and_variables
+    global_vars.system_dashboard.refresh
+End Sub
+
+Private Sub cmd_set_shown_to_closed_Click()
+    Load.call_stack = Me.name & ".cmd_set_shown_to_closed.Click"
+    Load.check_conn_and_variables
+    Dim str_where As String, str_sql As String
+    
+    If MsgBox("Are you sure you want to close these issues?", vbQuestion + vbYesNo + vbDefaultButton2, "Confirm delete") = vbNo Then
+        Exit Sub
+    End If
+        
+    str_where = Split(Me.RecordSource, "WHERE")(1)
+    str_where = Split(str_where, "ORDER")(0)
+    str_sql = "UPDATE " & Load.sources.log_errors_eur_t & " SET is_closed_id = 93 WHERE " & str_where
+    conn.Execute str_sql
+    str_sql = "UPDATE " & Load.sources.log_errors_us_t & " SET is_closed_id = 93 WHERE " & str_where
+    conn.Execute str_sql
+    
+    global_vars.system_dashboard.filter_routine_name.field_value = "_all"
+    
+    With global_vars.system_dashboard.filter_routine_name
+        Me.Controls(.field_name) = .field_value
+    End With
+    
+    fix_rs.system_dashboard_f
+    
+outro:
+    Load.call_stack = ""
+    
+End Sub
+
+Private Sub cmd_update_cm_in_americas_Click()
+    open_forms.working_on_it_f "Publishing the CM in Americas"
+    Load.call_stack = "sytem_dashboard_f.cmd_update_cm_in_americas.click"
+    Load.check_conn_and_variables
+    global_vars.system_dashboard.update_cm Load.system_info.continents.americas
+
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+    Exit Sub
+End Sub
+
+Private Sub cmd_update_cm_in_eurasia_Click()
+    open_forms.working_on_it_f "Publishing the CM in EurAsia"
+    Load.call_stack = "sytem_dashboard_f.cmd_update_cm_in_eurasia.click"
+    Load.check_conn_and_variables
+    global_vars.system_dashboard.update_cm Load.system_info.continents.eurasia
+
+outro:
+    open_forms.working_on_it_f__close
+    Load.call_stack = ""
+    Exit Sub
+End Sub
+
+Private Sub cmd_update_currencies_globally_Click()
+    open_forms.working_on_it_f "Publishing currencies globally"
+    Load.call_stack = "sytem_dashboard_f.cmd_update_currencies_globally.click"
+    Load.check_conn_and_variables
+    global_vars.system_dashboard.update_support_apps "currencies"
+
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+    Exit Sub
+
+End Sub
+
+Private Sub cmd_update_reports_Click()
+    open_forms.working_on_it_f "Publishing reports globally"
+    Load.call_stack = "sytem_dashboard_f.cmd_update_reports.click"
+    Load.check_conn_and_variables
+    global_vars.system_dashboard.update_support_apps "reports"
+
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+    Exit Sub
+End Sub
+
+Private Sub cmd_update_scripts_Click()
+    open_forms.working_on_it_f "Publishing scripts globally"
+    Load.call_stack = "sytem_dashboard_f.cmd_update_scripts.click"
+    Load.check_conn_and_variables
+    global_vars.system_dashboard.update_support_apps "scripts"
+
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+    Exit Sub
+End Sub
+
+Private Sub cmd_update_stella_in_america_Click()
+    open_forms.working_on_it_f "Publishing Stella UW in Americas"
+    Load.call_stack = "sytem_dashboard_f.cmd_update_stella_in_america.click"
+    Load.check_conn_and_variables
+    global_vars.system_dashboard.update_stella_uw Load.system_info.continents.americas
+    
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+End Sub
+
+Private Sub cmd_update_stella_in_eurasia_Click()
+    open_forms.working_on_it_f "Publishing Stella UW in EurAsia"
+    Load.call_stack = "sytem_dashboard_f.cmd_update_stella_in_eurasia.click"
+    Load.check_conn_and_variables
+    global_vars.system_dashboard.update_stella_uw Load.system_info.continents.eurasia
+    
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+End Sub
+
+
+Private Sub header_app_continent_AfterUpdate()
+    Load.check_conn_and_variables
+    With global_vars.system_dashboard.filter_app_continent
+        .field_value = Me.Controls(.field_name)
+    End With
+    fix_rs.system_dashboard_f
+End Sub
+
+Private Sub header_app_name_AfterUpdate()
+    Load.check_conn_and_variables
+    With global_vars.system_dashboard.filter_app_name
+        .field_value = Me.Controls(.field_name)
+    End With
+    fix_rs.system_dashboard_f
+End Sub
+
+Private Sub header_routine_name_AfterUpdate()
+    Load.call_stack = Me.name & "." & Screen.ActiveControl.name
+    Load.check_conn_and_variables
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    global_vars.system_dashboard.filter_routine_name.field_value = Me!header_routine_name
+    fix_rs.system_dashboard_f
+
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+    Exit Sub
+
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .routine_name = "system_dashboard_f.header_routine_name.afterupdate"
+        .milestone = ""
+        .params = ""
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+End Sub
+

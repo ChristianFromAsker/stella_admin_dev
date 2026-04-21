@@ -1,0 +1,271 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_broker_firms_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub cmd_change_Click()
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    Dim str_sql As String, rs As ADODB.Recordset
+    Dim str_recordset As String
+    str_recordset = Load.sources.broker_firms_view
+    
+    Dim input_controls() As Variant, i As Integer
+    input_controls = declare_fields_local
+    
+    str_sql = "SELECT * FROM " & str_recordset & " WHERE broker_firm_id = " & Me!id
+    Set rs = utilities.create_adodb_rs(conn, str_sql)
+        With Me
+            For i = 1 To input_controls(0, 0)
+                If IsNull(rs.Fields(input_controls(i, 0))) = False Then
+                    .Controls("new_" & input_controls(i, 0)) = rs.Fields(input_controls(i, 0))
+                End If
+            Next i
+        End With
+    rs.Close
+    Me!cmd_add_change.Caption = "update"
+    
+outro:
+    If Not rs Is Nothing Then
+        If rs.State = 1 Then rs.Close
+        Set rs = Nothing
+    End If
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .routine_name = "broker_firms_f.cmd_change.Click"
+        .milestone = ""
+        .params = "str_sql = " & str_sql
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    
+    GoTo outro
+
+End Sub
+Private Sub cmd_add_change_Click()
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    
+    Dim str_sql As String, rs As ADODB.Recordset, str_recordset As String
+    str_recordset = Load.sources.broker_firms_table
+    
+    'Check that necessary fields are populated
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields_local
+    Dim boo_cancel As Boolean
+    boo_cancel = False
+    Dim i As Integer
+    With global_vars.control_list_propertes
+        For i = 1 To arr_fields(0, 0)
+            If arr_fields(i, .is_mandatory) = True _
+                And (IsNull(Me.Controls("new_" & arr_fields(i, .field_name))) _
+                Or IsEmpty(Me.Controls(.field_name)) = True Or Me.Controls(.field_name) = "" _
+               ) Then
+                Me.Controls("new_" & arr_fields(i, .field_name)).BackColor = colors.yellow
+                boo_cancel = True
+            End If
+        Next i
+    End With
+    
+    If boo_cancel = True Then
+        GoTo outro
+    End If
+    
+    'Insert data into table
+    'first, get id. If new, create new record
+    Dim id As Long
+    If IsNull(Me!new_broker_firm_id) = True Or Me!new_broker_firm_id = "" Then
+        'check if broker is already in list
+        str_sql = "SELECT broker_firm_id, business_name FROM " & Load.sources.broker_firms_table & " WHERE is_deleted = 0 AND business_name = '" & Me!new_business_name & "'"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            If rs.RecordCount > 0 Then
+                MsgBox "Broker with that business name already exist in the list.", , "Duplicate"
+                GoTo outro
+            End If
+        rs.Close
+            
+        'assuming broker was not in list, insert new id
+        str_sql = "INSERT INTO " & str_recordset & "(is_deleted) VALUES (0)"
+        conn.Execute str_sql, adExecuteNoRecords
+        str_sql = "SELECT broker_firm_id FROM " & str_recordset & " ORDER BY broker_firm_id DESC"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            id = rs!broker_firm_id
+        rs.Close: Set rs = Nothing
+    Else
+        id = Me!new_broker_firm_id
+    End If
+    
+    Dim jurisdiction_data As String
+    jurisdiction_data = ""
+    If IsNull(Me!new_jurisdiction_id) = False And Me!new_jurisdiction_id <> "" Then
+        jurisdiction_data = ", jurisdiction_id__jurisdictions_t = " & Me!new_jurisdiction_id
+    End If
+    
+     'Update data
+    str_sql = "UPDATE " & str_recordset & " SET " _
+        & "business_name = '" & Me!new_business_name & "'" _
+        & ", legal_name = '" & Me!new_legal_name & "'" _
+        & ", broker_street = '" & Me!new_broker_street & "'" _
+        & ", broker_zip = '" & Me!new_broker_zip & "'" _
+        & ", broker_city = '" & Me!new_broker_city & "'" _
+        & ", region = '" & Me!new_region & "'" _
+        & jurisdiction_data _
+        & ", license_no = '" & Me!new_license_no & "'" _
+        & ", brand = '" & Me!new_brand & "'" _
+        & " WHERE broker_firm_id = " & id
+    conn.Execute str_sql, adExecuteNoRecords
+    Me!cmd_add_change.Caption = "add"
+    
+    fix_rs.broker_firms_f
+    
+    'empty input fields
+    With Me
+        For i = 1 To arr_fields(0, 0)
+            .Controls("new_" & arr_fields(i, 0)) = ""
+            If arr_fields(i, global_vars.control_list_propertes.set_bg_to_white) = True Then
+                .Controls("new_" & arr_fields(i, 0)).BackColor = colors.white
+            End If
+        Next i
+    End With
+    
+outro:
+    If Not rs Is Nothing Then
+        If rs.State = 1 Then rs.Close
+        Set rs = Nothing
+    End If
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .routine_name = "broker_firms_f.cmd_add_change.Click"
+        .milestone = ""
+        .params = "str_sql = " & str_sql
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+
+End Sub
+Private Sub cmd_delete_Click()
+    Dim str_message As String
+    Dim str_firm_name As String
+    str_firm_name = Me!short_name
+    str_message = "You are about to delete " & str_firm_name & ". Please confirm."
+    Dim answer As Variant
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        Exit Sub
+    Else
+        conn.Execute "UPDATE " & sources.broker_firms_table & " SET is_deleted = 1 WHERE broker_firm_id = " & Me!id
+        fix_rs.broker_firms_f
+    End If
+End Sub
+Public Function declare_fields_local()
+    Dim arr_fields(0 To 50, 0 To 3) As Variant, i As Integer
+    Dim field_name As Integer, is_mandatory As Integer, set_bg_to_white As Integer, field_in_recordset As Integer
+    field_name = global_vars.control_list_propertes.field_name
+    is_mandatory = global_vars.control_list_propertes.is_mandatory
+    set_bg_to_white = global_vars.control_list_propertes.set_bg_to_white
+    field_in_recordset = global_vars.control_list_propertes.field_in_recordset
+    
+    i = 1
+    arr_fields(i, field_name) = "broker_firm_id"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = False
+    arr_fields(i, field_in_recordset) = "broker_firm_id"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "business_name"
+    arr_fields(i, is_mandatory) = True
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "business_name"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "legal_name"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "legal_name"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "broker_street"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "broker_street"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "broker_city"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "broker_city"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "broker_zip"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "broker_zip"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "region"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "region"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "jurisdiction_id"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "jurisidiction_id"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "license_no"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "license_no"
+    
+    i = i + 1
+    arr_fields(i, field_name) = "brand"
+    arr_fields(i, is_mandatory) = False
+    arr_fields(i, set_bg_to_white) = True
+    arr_fields(i, field_in_recordset) = "brand"
+    
+    arr_fields(0, 0) = i
+    
+    declare_fields_local = arr_fields
+End Function
+Private Sub new_brand_AfterUpdate()
+    Me!new_brand.BackColor = colors.white
+End Sub
+Private Sub new_country_AfterUpdate()
+    Me!new_country.BackColor = colors.white
+End Sub
+Private Sub new_legal_name_AfterUpdate()
+    Me!new_legal_name.BackColor = colors.white
+End Sub
+Private Sub new_short_name_AfterUpdate()
+    Me!new_short_name.BackColor = colors.white
+End Sub
+Private Sub new_street_AfterUpdate()
+    Me!new_street.BackColor = colors.white
+End Sub
+Private Sub new_zip_city_AfterUpdate()
+    Me!new_zip_city.BackColor = colors.white
+End Sub

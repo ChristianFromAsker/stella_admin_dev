@@ -1,0 +1,67 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_change_financial_advisor_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Private Sub brand_AfterUpdate()
+    Me!brand.BackColor = colors.white
+End Sub
+Private Sub cmd_cancel_Click()
+    DoCmd.OpenForm "add_financial_advisor_f"
+    DoCmd.Close acForm, "change_financial_advisor_f"
+End Sub
+Private Sub cmd_update_Click()
+    Load.check_conn_and_variables
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    For i = 1 To arr_fields(0, 0)
+        If IsNull(Me.Controls(arr_fields(i, 0))) And arr_fields(i, 1) = 1 Then
+            MsgBox "Please populate all yellow fields"
+            Exit Sub
+        End If
+    Next i
+    Dim str_sql As String
+    str_sql = "UPDATE financial_advisors_t SET " _
+        & "firm_name = '" & Me!short_name & "'" _
+        & ", Jurisdiction = '" & Nz(Me!country, "_All") & "'" _
+        & ", brand = '" & Me!brand & "'" _
+        & ", Comments = '" & Me!comment & "'" _
+        & " WHERE financial_advisor_id = " & Me!id & ";"
+    conn.Execute str_sql
+    
+    DoCmd.OpenForm "add_financial_advisor_f"
+    DoCmd.Close acForm, "change_financial_advisor_f"
+    
+End Sub
+Private Sub country_AfterUpdate()
+    Me!country.BackColor = colors.white
+End Sub
+Private Sub Form_Load()
+    DoCmd.MoveSize Right:=1000, Down:=1000, Width:=10000, Height:=3000
+End Sub
+Private Sub short_name_AfterUpdate()
+    Me!short_name.BackColor = colors.white
+End Sub
+Private Function declare_fields()
+    Const int_number_of_fields As Integer = 5
+    Dim i As Integer: i = 0
+    Dim arr_fields(0 To int_number_of_fields, 0 To 1) As Variant
+    'For the second value, 0 is the field name and 1 is 0 if optional and 1 if mandatory.
+    arr_fields(i, 0) = int_number_of_fields
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "short_name"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "country"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "brand"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "comment"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "id"
+    declare_fields = arr_fields
+End Function

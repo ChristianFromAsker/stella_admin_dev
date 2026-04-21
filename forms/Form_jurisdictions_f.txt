@@ -1,0 +1,141 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_jurisdictions_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+Private Sub cmd_cancel_Click()
+    DoCmd.Close acForm, Me.name
+End Sub
+Private Sub cmd_change_Click()
+    Load.check_conn_and_variables
+    Dim str_form As String
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    'Populate change form with data
+    Dim i As Integer
+    With Me
+        For i = 1 To arr_fields(0, 0)
+            .Controls("new_" & arr_fields(i, 0)) = .Controls(arr_fields(i, 0))
+            If arr_fields(i, 1) = 1 And IsNull(.Controls("new_" & arr_fields(i, 0))) Then
+                .Controls("new_" & arr_fields(i, 0)).BackColor = colors.yellow
+            End If
+        Next i
+    End With
+    Me!cmd_add.Caption = "Update"
+End Sub
+Private Sub cmd_add_Click()
+    Load.check_conn_and_variables
+    'Check that necessary fields are populated
+    Dim arr_fields() As Variant
+    arr_fields = declare_fields
+    Dim boo_cancel As Boolean
+    boo_cancel = False
+    Dim i As Integer
+    For i = 1 To arr_fields(0, 0)
+        If arr_fields(i, 1) = 1 And IsNull(Me.Controls("new_" & arr_fields(i, 0))) Then
+            Me.Controls("new_" & arr_fields(i, 0)).BackColor = colors.yellow
+            boo_cancel = True
+        End If
+    Next i
+    If boo_cancel = True Then
+        Exit Sub
+    End If
+    Dim str_sql As String
+    If IsNull(Me!new_jurisdiction_id) = True Or Me!new_jurisdiction_id = "" Then
+        str_sql = "INSERT INTO " & sources.jurisdictions_table & " (jurisdiction, abbrevation, working_folder_id, nbi_template_id, budget_home_id, jurisdiction_type, rp_region_id) " _
+            & " VALUES (" _
+            & "'" & Me!new_jurisdiction & "'" _
+            & ", '" & Me!new_abbrevation & "'" _
+            & ", " & Me!new_working_folder _
+            & ", " & Me!new_nbi_template _
+            & ", " & Me!new_budget_home _
+            & ", 'country'" _
+            & ", " & Me!new_rp_region_id _
+            & ")"
+    Else
+        str_sql = "UPDATE " & sources.jurisdictions_table & " SET " _
+        & "jurisdiction = '" & Me!new_jurisdiction & "'" _
+        & ", abbrevation = '" & Me!new_abbrevation & "'" _
+        & ", working_folder_id = " & Me!new_working_folder _
+        & ", nbi_template_id = " & Me!new_nbi_template _
+        & ", budget_home_id  = " & Me!new_budget_home _
+        & ", jurisdiction_type = 'country'" _
+        & ", rp_region_id = " & Me!new_rp_region_id _
+        & " WHERE jurisdiction_id = " & Me!new_jurisdiction_id
+    End If
+    conn.Execute str_sql
+    'Reset form
+    Dim str_form As String
+    str_form = "jurisdictions_f"
+    fix_rs.jurisdictions_f
+    With Forms(str_form)
+        For i = 1 To arr_fields(0, 0)
+            .Controls("new_" & arr_fields(i, 0)) = ""
+            .Controls("new_" & arr_fields(i, 0)).BackColor = colors.white
+        Next i
+    End With
+    Me!cmd_add.Caption = "Add"
+End Sub
+Private Sub cmd_delete_Click()
+    Load.check_conn_and_variables
+    Dim str_message As String, str_sql As String
+    Dim str_firm_name As String
+    str_firm_name = Nz(Me!short_name, "")
+    str_message = "You are about to delete " & str_firm_name & ". Please confirm."
+    Dim answer As Variant
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        Exit Sub
+    Else
+        str_sql = "UPDATE " & sources.jurisdictions_table & " SET is_deleted = 1 WHERE jurisdiction_id = " & Me!jurisdiction_id
+        conn.Execute str_sql
+        MsgBox str_firm_name & " was deleted.", , "Great success!"
+        fix_rs.jurisdictions_f
+    End If
+End Sub
+Private Function declare_fields()
+    Const int_number_of_fields As Integer = 7
+    Dim i As Integer: i = 0
+    Dim arr_fields(0 To int_number_of_fields, 0 To 1) As Variant
+    'For the second value, 0 is the field name and 1 is 0 if optional and 1 if mandatory.
+    arr_fields(i, 0) = int_number_of_fields
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "jurisdiction"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "abbrevation"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "working_folder"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "nbi_template"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "budget_home"
+    arr_fields(i, 1) = 1: i = i + 1
+    arr_fields(i, 0) = "jurisdiction_id"
+    arr_fields(i, 1) = 0: i = i + 1
+    arr_fields(i, 0) = "rp_region_id"
+    arr_fields(i, 1) = 0: i = i + 1
+    declare_fields = arr_fields
+End Function
+Private Sub new_abbrevation_AfterUpdate()
+    If Len(Me!new_abbrevation) > 4 Then
+        Me!new_abbrevation = ""
+        MsgBox "Abbrevation can be maxium 4 letters.", , "Too long abbrevation"
+        Exit Sub
+    End If
+    Me!new_abbrevation.BackColor = colors.white
+End Sub
+Private Sub new_nbi_template_AfterUpdate()
+    Me!new_nbi_template.BackColor = colors.white
+End Sub
+Private Sub new_short_name_AfterUpdate()
+    Me!new_short_name.BackColor = colors.white
+End Sub
+Private Sub new_working_folder_AfterUpdate()
+    Me!new_working_folder.BackColor = colors.white
+End Sub

@@ -1,0 +1,689 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_deal_list_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+Private Sub cmd_all_statuses_Click()
+    Load.check_conn_and_variables
+    Dim status_buttons() As Variant, status_input() As Integer, i As Integer
+    status_buttons = Central.generate_buttons_for_deal_list
+    ReDim status_input(1 To UBound(status_buttons))
+    For i = 1 To UBound(status_buttons)
+        status_input(i) = 1
+    Next i
+    fix_status_buttons status_input, status_buttons
+End Sub
+Private Sub cmd_bound_Click()
+    Load.check_conn_and_variables
+    Dim status_buttons() As Variant, status_input() As Integer, i As Integer
+    status_buttons = Central.generate_buttons_for_deal_list
+    ReDim status_input(1 To UBound(status_buttons))
+    'Set all statuses to 0 (off)
+    For i = 1 To UBound(status_buttons)
+        status_input(i) = 0
+    Next i
+    'Set relevant statuses to 1 (on)
+    status_input(8) = 1
+    status_input(7) = 1
+    fix_status_buttons status_input, status_buttons
+    cmd_date_filter.Caption = "filter by inception date"
+End Sub
+
+Private Sub cmd_canada_Click()
+    FixCountryColors "cmd_canada"
+End Sub
+
+Private Sub cmd_collapsed_Click()
+    FixButtonColors "cmd_collapsed", "Collap"
+End Sub
+
+Private Sub cmd_date_filter_Click()
+    If InStr(Me!cmd_date_filter.Caption, "nda") > 0 Then
+        Me!cmd_date_filter.Caption = "filtering by inception date"
+    Else
+        Me!cmd_date_filter.Caption = "filtering by nda date"
+    End If
+End Sub
+
+Private Sub cmd_dubai_Click()
+    FixCountryColors "cmd_dubai"
+End Sub
+
+Private Sub cmd_export_Click()
+    open_forms.working_on_it_f "Working on it!"
+    Load.check_conn_and_variables
+    GenerateReports.generate_master_list_extract Me.RecordSource
+    open_forms.working_on_it_f__close
+End Sub
+Private Sub cmd_export_sensitive_Click()
+    'purpose: Make extract with info about uw fees
+    '21 Feb 2025, CK: Not implemente yet, so this is just pulling the regular extract
+    Load.call_stack = "global_deal_list_f.cmd_export_sensitive.Click"
+    Load.check_conn_and_variables
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Dim str_sql As String, rs As ADODB.Recordset
+    str_sql = "SELECT uw_id, uw_name FROM " & Load.sources.uws_view _
+        & " WHERE is_super_duper_trusted = 'yes' AND user_name = '" & Environ("username") & "'"
+    Set rs = utilities.create_adodb_rs(conn, str_sql)
+    With rs
+        If CLng(.RecordCount) > 0 Then
+            open_forms.working_on_it_f "Working on it!"
+            GenerateReports.generate_master_list_extract Me.RecordSource
+            open_forms.working_on_it_f__close
+        End If
+        .Close
+    End With
+    Set rs = Nothing
+    
+outro:
+    open_forms.working_on_it_f__close
+    Load.call_stack = ""
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .routine_name = "gloabl_deal_list_f.cmd_export_sensitive.Click"
+        .milestone = ""
+        .params = ""
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+
+End Sub
+
+Private Sub cmd_non_bound_Click()
+    Load.check_conn_and_variables
+    Dim status_buttons() As Variant, status_input() As Integer, i As Integer
+    status_buttons = Central.generate_buttons_for_deal_list
+    ReDim status_input(1 To UBound(status_buttons))
+    'Set all statuses to 0 (off)
+    For i = 1 To UBound(status_buttons)
+        status_input(i) = 0
+    Next i
+    'Set relevant statuses to 1 (on)
+    status_input(9) = 1
+    status_input(10) = 1
+    status_input(11) = 1
+    fix_status_buttons status_input, status_buttons
+    cmd_date_filter.Caption = "filter by NDA date"
+End Sub
+
+Private Sub cmd_reset_Click()
+    default_filters
+End Sub
+
+Private Sub cmd_submission_Click()
+    FixButtonColors "cmd_submission", "Sub"
+End Sub
+
+Private Sub cmd_usa_Click()
+    FixCountryColors "cmd_usa"
+End Sub
+Private Sub cmd_working_Click()
+    Load.check_conn_and_variables
+    Dim status_buttons() As Variant, status_input() As Integer, i As Integer
+    status_buttons = Central.generate_buttons_for_deal_list
+    ReDim status_input(1 To UBound(status_buttons))
+    'Set all statuses to 0 (off)
+    For i = 1 To UBound(status_buttons)
+        status_input(i) = 0
+    Next i
+    'Set relevant statuses to 1 (on)
+    For i = 1 To 6
+        status_input(i) = 1
+    Next i
+    fix_status_buttons status_input, status_buttons
+    cmd_date_filter.Caption = "filter by NDA date"
+End Sub
+Private Sub fix_status_buttons(ByVal status_input As Variant, ByVal status_buttons As Variant)
+    Load.check_conn_and_variables
+    'For status_buttons:
+    '0 = control name
+    '1 = default caption
+    '2 = control type
+    '3 = caption for on
+    '4 = caption for off
+    Dim i As Integer: i = 0
+    For i = 1 To UBound(status_input)
+        With Me.Controls(status_buttons(i, 0))
+            If status_input(i) = 1 Then
+                .Caption = status_buttons(i, 3)
+                .BackColor = Load.colors.active_filter_bg
+                .ForeColor = colors.white
+            Else
+                .Caption = status_buttons(i, 4)
+                .BackColor = Load.colors.inactive_filter_bg
+                .ForeColor = colors.black
+            End If
+        End With
+    Next i
+End Sub
+Private Sub status_help_buttons(ByVal status_buttons As Variant)
+    Load.check_conn_and_variables
+    Dim i As Integer: i = 0
+    For i = 1 To UBound(status_buttons)
+        With Me.Controls(status_buttons(i, 1))
+            .Caption = status_buttons(i, 3)
+            If status_buttons(i, 2) = 1 Then
+                .BackColor = colors.white
+                .ForeColor = colors.black
+            Else
+                .BackColor = colors.very_dark_blue
+                .ForeColor = colors.white
+            End If
+        End With
+    Next i
+End Sub
+
+Private Sub comSector_AfterUpdate()
+    Load.check_conn_and_variables
+    If Me!comSector = 111 Then GoTo outro ' 111 is _All
+        
+    'populate com_sub_sector based on selection
+    Dim str_sql As String, rs As ADODB.Recordset
+    'remove existing items
+    With Me!com_sub_sector
+        Do While .ListCount > 0
+            .RemoveItem (0)
+        Loop
+        .AddItem "-1;_All"
+        str_sql = "SELECT sector_id id, sector_name menu_item FROM " & sources.sectors_table & " WHERE parent_sector_id = " & Me!comSector & " ORDER BY sector_name"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            Do While rs.EOF = False
+                .AddItem rs!id & ";" & rs!menu_item
+                rs.MoveNext
+            Loop
+        rs.Close
+        .Value = -1
+    End With
+outro:
+    If Not rs Is Nothing Then
+        If rs.State = 1 Then rs.Close
+        Set rs = Nothing
+    End If
+    Exit Sub
+err_handler:
+    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
+        & "Error number: " & Err.Number & vbNewLine _
+        & "Error description: " & Err.Description & vbNewLine _
+        & "Where: deal_details_f.target_super_sector_id_AfterUpdate()" & vbNewLine _
+        & "Parameters: me!dela_id = " & Me!deal_id & vbNewLine _
+        & "App: Stella UW Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
+    GoTo outro
+End Sub
+
+Private Sub Form_Load()
+    DoCmd.MoveSize Right:=9250, Down:=0, Width:=21000, Height:=6000
+    'Ensure relevant variables are loaded
+    Load.check_conn_and_variables
+End Sub
+Private Sub cmdAllNone_Click()
+    Load.check_conn_and_variables
+    Dim country_buttons(1 To 12), button_count As Integer
+    button_count = 1
+    country_buttons(button_count) = "cmdNorway": button_count = button_count + 1
+    country_buttons(button_count) = "cmdAsiaPac": button_count = button_count + 1
+    country_buttons(button_count) = "cmdSweden": button_count = button_count + 1
+    country_buttons(button_count) = "cmdDenmark": button_count = button_count + 1
+    country_buttons(button_count) = "cmdFinland": button_count = button_count + 1
+    country_buttons(button_count) = "cmdUK": button_count = button_count + 1
+    country_buttons(button_count) = "cmdHolland": button_count = button_count + 1
+    country_buttons(button_count) = "cmdMed": button_count = button_count + 1
+    country_buttons(button_count) = "cmdGermany": button_count = button_count + 1
+    country_buttons(button_count) = "cmd_canada": button_count = button_count + 1
+    country_buttons(button_count) = "cmd_dubai": button_count = button_count + 1
+    country_buttons(button_count) = "cmd_usa"
+    
+    Dim button
+    If Me!cmdNorway.BackColor = colors.inactive_filter_bg Then
+        For Each button In country_buttons
+            With Me.Controls(button)
+                .BackColor = colors.active_filter_bg
+                .ForeColor = colors.white
+            End With
+        Next button
+    Else
+        For Each button In country_buttons
+            With Me.Controls(button)
+                .BackColor = colors.inactive_filter_bg
+                .ForeColor = colors.black
+            End With
+        Next button
+    End If
+End Sub
+Private Sub cmdAsiaPac_Click()
+    FixCountryColors "cmdAsiaPac"
+End Sub
+Private Sub cmdDenmark_Click()
+    FixCountryColors "cmdDenmark"
+End Sub
+Private Sub cmdFinland_Click()
+    FixCountryColors "cmdFinland"
+End Sub
+Private Sub cmdGermany_Click()
+    FixCountryColors "cmdGermany"
+End Sub
+Private Sub cmdHolland_Click()
+    FixCountryColors "cmdHolland"
+End Sub
+Private Sub cmdMed_Click()
+    FixCountryColors "cmdMed"
+End Sub
+Private Sub cmdNorway_Click()
+    FixCountryColors "cmdNorway"
+End Sub
+Private Sub cmdSweden_Click()
+    FixCountryColors "cmdSweden"
+End Sub
+Private Sub cmdUK_Click()
+    FixCountryColors "cmdUK"
+End Sub
+Private Sub FixCountryColors(ByVal strCountry As String)
+    Load.check_conn_and_variables
+    If Controls(strCountry).BackColor = Load.colors.inactive_filter_bg Then
+        Controls(strCountry).BackColor = colors.active_filter_bg
+        Controls(strCountry).ForeColor = colors.white
+    Else
+        Controls(strCountry).BackColor = colors.inactive_filter_bg
+        Controls(strCountry).ForeColor = colors.black
+    End If
+End Sub
+Private Sub cmdDeclined_Click()
+    FixButtonColors "cmdDeclined", "Decl."
+End Sub
+Private Sub cmdCancel_Click()
+    FixButtonColors "cmdCancel", "Cancel"
+End Sub
+Private Sub cmdExpensed_Click()
+    FixButtonColors "cmdExpensed", "Expen"
+End Sub
+Private Sub cmdLost_Click()
+    FixButtonColors "cmdLost", "Lost"
+End Sub
+Private Sub cmdNBI_Click()
+    FixButtonColors "cmdNBI", "NBI"
+End Sub
+Private Sub cmdNDA_Click()
+    FixButtonColors "cmdNDA", "NDA"
+End Sub
+Private Sub cmdPreferred_Click()
+    FixButtonColors "cmdPreferred", "Pref"
+End Sub
+Private Sub cmdSigned_Click()
+    FixButtonColors "cmdSigned", "Signed"
+End Sub
+Private Sub cmd_closed_Click()
+    FixButtonColors "cmd_closed", "Closed"
+End Sub
+Private Sub cmdUW_Click()
+    FixButtonColors "cmdUW", "UW"
+End Sub
+Private Sub FixButtonColors(ByVal str_button As String, str_caption As String)
+    Load.check_conn_and_variables
+    With Controls(str_button)
+        If .BackColor = colors.inactive_filter_bg Then
+            .BackColor = colors.active_filter_bg
+            .ForeColor = colors.white
+            .Caption = str_caption & ": on"
+        Else
+            .BackColor = colors.inactive_filter_bg
+            .ForeColor = colors.black
+            .Caption = str_caption & ": off"
+        End If
+    End With
+End Sub
+Private Sub cmdRefresh_Click()
+    'intro
+    Load.check_conn_and_variables
+    
+    Dim strRPEntityCondition As String, strStatusCondition As String, strSectorCondition As String, strDateCondition As String, strBrokerCondition As String
+    Dim str_has_fee_condition As String, str_fee_paid_condition As String, strJurisdictionCondition As String
+    Dim strCondition As String
+    Dim y As Integer
+    Dim intMonthEnd As Integer, intYearEnd As Integer, intDayEnd As Integer
+    Dim int_color_yes As Variant, int_color_no As Variant
+    ' RP entity String builder
+    strRPEntityCondition = ""
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 86, "cmdAsiaPac")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 76, "cmdDenmark")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 82, "cmdFinland")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 79, "cmdGermany")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 83, "cmdHolland")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 87, "cmdMed")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 77, "cmdNorway")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 78, "cmdSweden")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 81, "cmdUK")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 435, "cmd_canada")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 436, "cmd_dubai")
+    strRPEntityCondition = EntitySelector(strRPEntityCondition, 93, "cmd_usa")
+    If strRPEntityCondition = "" Then
+        MsgBox "You must choose at least one RP entity."
+        Exit Sub
+    End If
+    ' Status string builder
+    strStatusCondition = ""
+    strStatusCondition = StatusSelector(strStatusCondition, 1, "cmdNDA")
+    strStatusCondition = StatusSelector(strStatusCondition, 2, "cmdNBI")
+    strStatusCondition = StatusSelector(strStatusCondition, 481, "cmd_submission")
+    strStatusCondition = StatusSelector(strStatusCondition, 3, "cmdPreferred")
+    strStatusCondition = StatusSelector(strStatusCondition, 4, "cmdExpensed")
+    strStatusCondition = StatusSelector(strStatusCondition, 5, "cmdUW")
+    strStatusCondition = StatusSelector(strStatusCondition, 6, "cmdSigned")
+    strStatusCondition = StatusSelector(strStatusCondition, 436, "cmd_closed")
+    strStatusCondition = StatusSelector(strStatusCondition, 7, "cmdDeclined")
+    strStatusCondition = StatusSelector(strStatusCondition, 8, "cmdCancel")
+    strStatusCondition = StatusSelector(strStatusCondition, 9, "cmdLost")
+    strStatusCondition = StatusSelector(strStatusCondition, 485, "cmd_collapsed")
+    If strStatusCondition = "" Then
+        MsgBox "You must choose at least one deal status."
+        Exit Sub
+    End If
+    
+    ' Date string builder
+    Dim date_stop As Boolean
+    date_stop = False
+    'Check that date input is numbers
+    If IsNumeric(txtYearEnd) = False Or IsNumeric(txtYearStart) = False Or IsNumeric(txtMonthStart) = False Or IsNumeric(txtMonthEnd) = False Then
+        date_stop = True
+    Else
+        Dim month_start As Long, month_end As Long, year_start As Long, year_end As Long
+        month_start = Me!txtMonthStart: month_end = Me!txtMonthEnd: year_start = Me!txtYearStart: year_end = Me!txtYearEnd
+        'check that years are in acceptable intervals
+        If year_end > Year(Date) + 1 Or year_start > Year(Date) + 1 Or year_start < 2010 Or year_end < 2010 Then
+            date_stop = True
+        End If
+        If month_start > 12 Or month_end > 12 Then
+            date_stop = True
+        End If
+        'check that start date is earlier than end date
+        If year_start > year_end Or (year_start = year_end And month_start > month_end) Then
+            date_stop = True
+        End If
+    End If
+    If date_stop = True Then
+        MsgBox "Something is wrong with the date. Please make sure the date fields have numbers and the 'from' date is before the 'to' date", , "Issue with dates"
+        Me!txtYearEnd = Year(Date): Me!txtYearStart = Year(Date): Me!txtMonthStart = 1: Me!txtMonthEnd = 12
+        Exit Sub
+    End If
+    intDayEnd = 1
+    If month_end = 12 Then
+        intMonthEnd = 1
+        intYearEnd = txtYearEnd + 1
+    Else
+        intMonthEnd = txtMonthEnd + 1
+        intYearEnd = txtYearEnd
+    End If
+    Dim date_start As Date
+    Dim date_end As Date
+    date_start = "1-" & month_start & "-" & year_start
+    date_end = intDayEnd & "-" & intMonthEnd & "-" & intYearEnd
+    If InStr(cmd_date_filter.Caption, "nda") = 0 Then
+        strDateCondition = " AND (inception_date >= '" & utilities.generate_sql_date(date_start) & "') AND (inception_date < '" & utilities.generate_sql_date(date_end) & "')"
+    Else
+        strDateCondition = " AND (create_date >= '" & utilities.generate_sql_date(date_start) & "') AND (create_date < '" & utilities.generate_sql_date(date_end) & "')"
+    End If
+    
+    ' Broker builder condition
+    Dim strBrokerSearch As String
+    strBrokerSearch = comBroker
+    If Me!comBroker = -1 Then
+        strBrokerCondition = ""
+    Else
+        strBrokerCondition = " AND broker_firm_id = " & comBroker
+    End If
+    
+    ' Risk type string builder
+    Dim str_risk_type_selection As String, int_risk_type As Long
+    If com_risk_type = -1 Then
+        str_risk_type_selection = ""
+    Else
+        str_risk_type_selection = " AND (risk_type_id = " & com_risk_type & ")"
+        int_risk_type = com_risk_type
+    End If
+    
+    'Super sector string builder
+    If comSector = -1 Then
+        strSectorCondition = ""
+    Else
+        strSectorCondition = " AND (target_super_sector_id = " & Me!comSector & ")"
+    End If
+    
+    'Sub sector string builder
+    Dim sub_sector_condition As String
+    If Me!com_sub_sector = -1 Then
+        sub_sector_condition = ""
+    Else
+        sub_sector_condition = " AND (target_sub_sector_id = " & Me!com_sub_sector & ")"
+    End If
+    
+    ' Layer type string builder
+    Dim str_layer_condition
+    If com_primary_or_xs = -1 Then
+        str_layer_condition = ""
+    Else
+        str_layer_condition = " AND primary_or_xs_id = " & com_primary_or_xs
+    End If
+    
+    ' SPA law string builder
+    Dim strJurisdictionSelection As String
+    If comJurisdiction = "_All" Then
+        strJurisdictionCondition = ""
+        strJurisdictionSelection = "_All"
+    Else
+        strJurisdictionCondition = " AND (spa_law = '" & comJurisdiction & "')"
+        strJurisdictionSelection = comJurisdiction
+    End If
+    
+    'deal name string builder
+    Dim deal_name_condition As String
+    deal_name_condition = ""
+    If Me!deal_name_search <> "" Then
+        deal_name_condition = " AND deal_name LIKE '%" & deal_name_search & "%'"
+    End If
+    
+    ' Final string builder
+    strCondition = "(" & strRPEntityCondition & ")" & " AND (" & strStatusCondition & ")" & strDateCondition & strBrokerCondition & strSectorCondition & strJurisdictionCondition _
+        & str_risk_type_selection & str_layer_condition & deal_name_condition & sub_sector_condition
+    Central.update_deal_list_f strCondition
+End Sub
+Function EntitySelector(ByRef strExisting As String, ByVal intEntity As Integer, ByVal strButton As String)
+    Load.check_conn_and_variables
+    Dim strAddition As String
+    
+    If Controls(strButton).BackColor = Load.colors.active_filter_bg Then
+        If strExisting <> "" Then
+            strAddition = " OR budget_home_id = " & intEntity
+        Else
+            strAddition = " budget_home_id = " & intEntity
+        End If
+    End If
+    EntitySelector = strExisting & strAddition
+End Function
+Function StatusSelector(ByRef strExisting As String, ByVal intStatus As Integer, ByVal strButton As String)
+    Load.check_conn_and_variables
+    Dim strAddition As String
+    If Controls(strButton).BackColor = Load.colors.active_filter_bg Then
+        If strExisting <> "" Then
+            strAddition = " OR "
+        Else
+            strAddition = " "
+        End If
+        Dim str_status_text As String
+        str_status_text = "deal_status_id = " & intStatus
+        strAddition = strAddition & str_status_text
+        Dim intTracker
+        intTracker = "1"
+    Else
+    End If
+    StatusSelector = strExisting & strAddition
+End Function
+Private Sub fix_deal_list_order(ByVal data_field As String)
+    Load.check_conn_and_variables
+    Dim str_sql() As String
+    str_sql = Split(Me.RecordSource, "WHERE")
+    str_sql = Split(str_sql(1), "ORDER")
+    Dim str_direction As String
+    Dim str_control As String
+    str_control = "sort_" & data_field
+    If Me.Controls(str_control).Caption = "<<<" Then
+        Me.Controls(str_control).Caption = ">>>"
+        str_direction = "ASC"
+    Else
+        Me.Controls(str_control).Caption = "<<<"
+        str_direction = "DESC"
+    End If
+    open_forms.deal_list_f
+    Central.update_deal_list_f str_sql(0) & " ORDER BY " & data_field & " " & str_direction
+End Sub
+Private Sub sort_create_date_Click()
+    fix_deal_list_order "create_date"
+End Sub
+Private Sub sort_deal_name_Click()
+    fix_deal_list_order "deal_name"
+End Sub
+Private Sub sort_ev_eur_Click()
+    fix_deal_list_order "ev_eur"
+End Sub
+Private Sub sort_inception_date_Click()
+    fix_deal_list_order "inception_date"
+End Sub
+Private Sub sort_budget_home_Click()
+    fix_deal_list_order "budget_home"
+End Sub
+Private Sub sort_status_Click()
+    fix_deal_list_order "status"
+End Sub
+Private Sub sort_total_rp_limit_on_deal_eur_Click()
+    fix_deal_list_order "total_rp_limit_on_deal_eur"
+End Sub
+Private Sub sort_total_rp_premium_on_deal_eur_Click()
+    fix_deal_list_order "total_rp_premium_on_deal_eur"
+End Sub
+Private Sub sort_primary_uw_initials_Click()
+    fix_deal_list_order "primary_uw_initials"
+End Sub
+Public Sub default_filters()
+    Dim filter_buttons()
+    Dim button_count As Integer, button
+    button_count = 1
+    
+    'country buttons
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdNorway": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdAsiaPac": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdSweden": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdDenmark": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdFinland": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdUK": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdHolland": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdMed": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdGermany": button_count = button_count + 1
+    
+    'status buttons
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdNDA": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdNBI": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmd_submission": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdPreferred": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdExpensed": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdUW": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdSigned": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmd_closed": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdDeclined": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdCancel": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmdLost": button_count = button_count + 1
+    ReDim Preserve filter_buttons(1 To button_count)
+    filter_buttons(button_count) = "cmd_collapsed": button_count = button_count + 1
+    
+    button_count = button_count - 1
+    
+    With Me
+        !cmd_date_filter.Caption = "filtering by NDA date"
+        
+        For Each button In filter_buttons
+            .Controls(button).BackColor = Load.colors.active_filter_bg
+            .Controls(button).ForeColor = colors.white
+        Next button
+
+        With !cmdNDA
+            .Caption = "NDA: on"
+        End With
+        With !cmdNBI
+            .Caption = "NBI: on"
+        End With
+        With !cmd_submission
+            .Caption = "Sub: on"
+        End With
+        With !cmdPreferred
+            .Caption = "Pref: on"
+        End With
+        With !cmdExpensed
+            .Caption = "Expen: on"
+        End With
+        With !cmdUW
+            .Caption = "UW: on"
+        End With
+        With !cmdSigned
+            .Caption = "Signed: on"
+        End With
+        With !cmd_closed
+            .Caption = "Closed: on"
+        End With
+        With !cmdDeclined
+            .Caption = "Decl: on"
+        End With
+        With !cmdCancel
+            .Caption = "Cancel: on"
+        End With
+        With !cmdLost
+            .Caption = "Lost: on"
+        End With
+        With !cmd_collapsed
+            .Caption = "Collaps: on"
+        End With
+        
+        !comBroker = -1
+        !comJurisdiction = "_All"
+        !com_risk_type = -1
+        !comSector = -1
+        !com_sub_sector = -1
+        !com_primary_or_xs = -1
+        !txtMonthStart = 1
+        !txtYearStart = Year(Date) - 2
+        !txtMonthEnd = 12
+        !txtYearEnd = Year(Date)
+    End With
+End Sub
+
+

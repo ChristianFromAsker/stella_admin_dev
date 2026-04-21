@@ -1,0 +1,320 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_awac_excels_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+
+Private Sub cmd_add_change_Click()
+    Load.call_stack = "awac_excels_f"
+    On Error GoTo err_handler
+    If is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    
+    Dim str_recordset As String
+    str_recordset = Load.sources.awac_excels_table
+    
+    'Create list of fields on which to perform verification tests
+    Dim input_controls() As Variant
+    input_controls = declare_fields_local
+    
+    'Check that mandatory fields are populated
+    Dim boo_cancel As Boolean, control_name As String
+    Dim i As Integer
+    For i = 0 To input_controls(0, global_vars.field_properties.item_count)
+        control_name = "header_" & input_controls(i, global_vars.field_properties.field_name)
+        If input_controls(i, global_vars.field_properties.is_mandatory) = True Then
+            If IsNull(Me.Controls(control_name)) = True _
+                Or IsEmpty(Me.Controls(control_name)) = True _
+                Or Me.Controls(control_name) = "" Then
+                Me.Controls(control_name).BackColor = colors.yellow
+                boo_cancel = True
+            End If
+        End If
+    Next i
+    
+    'Exit sub if mandatory data is missing
+    If boo_cancel = True Then
+        GoTo outro
+    End If
+    
+    'Insert data into table
+    'first, get id. If new, create new record
+    Dim str_sql As String, id As Long, rs As ADODB.Recordset
+    If IsNull(Me!header_awac_id) = True Or Me!header_awac_id = "" Then
+        str_sql = "INSERT INTO " & str_recordset & "(is_deleted) VALUES (0)"
+        conn.Execute str_sql, adExecuteNoRecords
+        str_sql = "SELECT awac_id FROM " & str_recordset & " ORDER BY awac_id DESC"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            id = rs!awac_id
+        rs.Close: Set rs = Nothing
+    Else
+        id = Me!header_awac_id
+    End If
+    
+    str_sql = "UPDATE " & str_recordset & " SET " _
+        & "email_address = '" & Me!header_email & "'" _
+        & ", to_field_id__menu_list_t = " & Me!header_to_field _
+        & ", cc_field_id__menu_list_t = " & Me!header_cc_field _
+        & ", v5_report_id__menu_list_t = " & Me!header_v5_report _
+        & ", payment_report_id__menu_list_t = " & Me!header_payment_report _
+        & " WHERE awac_id = " & id
+    conn.Execute str_sql
+    Me!cmd_add_change.Caption = "add"
+    
+    'Update form
+    fix_rs.awac_excels_f
+    global_vars.awac_excels.show_hide_input
+    
+    'empty input fields
+    With Me
+        For i = 0 To input_controls(0, global_vars.field_properties.item_count)
+            If input_controls(i, global_vars.field_properties.shall_reset) = True Then
+                .Controls("header_" & input_controls(i, global_vars.field_properties.field_name)) = ""
+                .Controls("header_" & input_controls(i, global_vars.field_properties.field_name)).BackColor = colors.white
+            End If
+        Next i
+    End With
+    
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .call_stack = Load.call_stack
+        .routine_name = "awac_excels_f.cmd_add_change.Click"
+        .milestone = ""
+        .params = "str_sql = " & str_sql
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+        
+End Sub
+
+Private Sub cmd_change_Click()
+    Dim proc_name As String
+    proc_name = "awac_excels_f.cmd_change.click"
+    Load.call_stack = proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    'Populate change form with current data
+    global_vars.awac_excels.show_hide_input
+    
+    Dim input_controls() As Variant
+    input_controls = declare_fields_local
+    Dim str_sql As String
+    str_sql = "SELECT * FROM " & Load.sources.awac_excels_table & " WHERE awac_id = " & Me!awac_id
+    Dim rs As ADODB.Recordset
+    Set rs = utilities.create_adodb_rs(conn, str_sql)
+        With Me
+            !header_email = rs!email_address
+            !header_to_field = rs!to_field_id__menu_list_t
+            !header_cc_field = rs!cc_field_id__menu_list_t
+            !header_payment_report = rs!payment_report_id__menu_list_t
+            !header_v5_report = rs!v5_report_id__menu_list_t
+            !header_awac_id = rs!awac_id
+        End With
+    rs.Close
+    Set rs = Nothing
+    Me!cmd_add_change.Caption = "update"
+    
+outro:
+    Load.call_stack = ""
+    open_forms.working_on_it_f__close
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .call_stack = Load.call_stack
+        .routine_name = proc_name
+        .milestone = ""
+        .params = "str_sql = " & str_sql
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+
+End Sub
+Private Sub cmd_delete_Click()
+    Load.check_conn_and_variables
+    
+    Dim str_message As String, answer As Variant
+    str_message = "Remove '" & Me!email_address & "'?"
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Please confirm.")
+    If answer = vbNo Then
+        Exit Sub
+    Else
+        conn.Execute "UPDATE " & Load.sources.awac_excels_table & " SET is_deleted = 1 WHERE awac_id = " & Me!awac_id, adExecuteNoRecords
+        fix_rs.awac_excels_f
+    End If
+End Sub
+Private Function declare_fields_local()
+    Dim control_count As Integer, input_controls(0 To 50, 0 To 3) As Variant
+
+    control_count = 1
+    input_controls(control_count, global_vars.field_properties.field_name) = "email"
+    input_controls(control_count, global_vars.field_properties.is_mandatory) = True
+    input_controls(control_count, global_vars.field_properties.shall_reset) = True
+    
+    control_count = control_count + 1
+    input_controls(control_count, global_vars.field_properties.field_name) = "to_field"
+    input_controls(control_count, global_vars.field_properties.is_mandatory) = True
+    input_controls(control_count, global_vars.field_properties.shall_reset) = True
+    
+    control_count = control_count + 1
+    input_controls(control_count, global_vars.field_properties.field_name) = "cc_field"
+    input_controls(control_count, global_vars.field_properties.is_mandatory) = True
+    input_controls(control_count, global_vars.field_properties.shall_reset) = True
+    
+    control_count = control_count + 1
+    input_controls(control_count, global_vars.field_properties.field_name) = "awac_id"
+    input_controls(control_count, global_vars.field_properties.is_mandatory) = False
+    input_controls(control_count, global_vars.field_properties.shall_reset) = True
+    
+    control_count = control_count + 1
+    input_controls(control_count, global_vars.field_properties.field_name) = "payment_report"
+    input_controls(control_count, global_vars.field_properties.is_mandatory) = True
+    input_controls(control_count, global_vars.field_properties.shall_reset) = True
+    
+    control_count = control_count + 1
+    input_controls(control_count, global_vars.field_properties.field_name) = "v5_report"
+    input_controls(control_count, global_vars.field_properties.is_mandatory) = True
+    input_controls(control_count, global_vars.field_properties.shall_reset) = True
+    
+    input_controls(0, global_vars.field_properties.item_count) = control_count
+    
+    declare_fields_local = input_controls
+End Function
+
+Private Sub cmd_goto_folder_Click()
+    Load.check_conn_and_variables
+    Application.FollowHyperlink Load.system_info.system_paths.awac_conversion_path
+End Sub
+
+Private Sub cmd_prepare_emails_Click()
+    Load.call_stack = "awac_excels_f.cmd_prepare_emails_Click"
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    open_forms.working_on_it_f "Hold in a minute please."
+    
+    global_vars.awac_excels.emails
+    
+outro:
+    open_forms.working_on_it_f__close
+    Load.call_stack = ""
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .call_stack = Load.call_stack
+        .routine_name = "awac_excels_f.cmd_prepare_emails.Click"
+        .milestone = ""
+        .params = ""
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+End Sub
+
+Private Sub cmd_prepare_excels_Click()
+    Dim proc_name As String
+    proc_name = "awac_excels_f.cmd_prepare_excels.click"
+    Load.call_stack = proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    open_forms.working_on_it_f "Opening excels. Reading excels. Closing excels. Always the excels!"
+    global_vars.awac_excels.emails_convert_excels False
+    
+outro:
+    open_forms.working_on_it_f__close
+    Load.call_stack = ""
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .call_stack = Load.call_stack
+        .routine_name = "awac_excels_f.cmd_prepare_emails.Click"
+        .milestone = ""
+        .params = ""
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+End Sub
+
+Private Sub cmd_prepare_excels_test_Click()
+    Dim proc_name As String
+    proc_name = "awac_excels_f.cmd_prepare_excels_test.click"
+    Load.call_stack = proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    open_forms.working_on_it_f "Opening excels. Reading excels. Closing excels. Always the excels!"
+    global_vars.awac_excels_new.emails_convert_excels True
+    
+outro:
+    open_forms.working_on_it_f__close
+    Load.call_stack = ""
+    Exit Sub
+    
+err_handler:
+    Dim err_object As cls_err_object
+    Set err_object = New cls_err_object
+    With err_object
+        .call_stack = Load.call_stack
+        .routine_name = "awac_excels_f.cmd_prepare_emails.Click"
+        .milestone = ""
+        .params = ""
+        .system_error_code = Err.Number
+        .system_error_text = Err.Description
+        .show_error_msg = True
+        .send_error err_object
+    End With
+    GoTo outro
+End Sub
+
+Private Sub cmd_show_input_Click()
+    Dim proc_name As String
+    proc_name = "awac_excels_f.cmd_show_input.Click"
+    Load.call_stack = proc_name
+    
+    Load.check_conn_and_variables
+    global_vars.awac_excels.show_hide_input
+    
+outro:
+    Load.call_stack = ""
+End Sub

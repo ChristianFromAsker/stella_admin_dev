@@ -1,0 +1,182 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_service_messages_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+Private Sub cmd_add_change_Click()
+    'intro
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    Dim str_sql As String, rs As ADODB.Recordset
+    
+    'Create list of fields on which to perform verification tests
+    Dim input_controls() As Variant
+    input_controls = service_messages.declare_fields
+    
+    'Check that mandatory fields are populated
+    Dim boo_cancel As Boolean
+    Dim i As Integer
+    For i = 0 To UBound(input_controls)
+        If input_controls(i, 1) = 1 Then
+            If IsNull(Me.Controls("header_" & input_controls(i, 0))) = True _
+                Or IsEmpty(Me.Controls("header_" & input_controls(i, 0))) = True Or _
+                Me.Controls("header_" & input_controls(i, 0)) = "" Then
+                Me.Controls("header_" & input_controls(i, 0)).BackColor = colors.yellow
+                boo_cancel = True
+            End If
+        End If
+    Next i
+    
+    'Exit sub if mandatory data is missing
+    If boo_cancel = True Then
+        Exit Sub
+    End If
+    
+    'Insert data into table
+    'first, get id. If new, create new record
+    Dim id As Long
+    If IsNull(Me!header_message_id) = True Or Me!header_message_id = "" Then
+        str_sql = "INSERT INTO " & Load.sources.service_messages_table & "(is_deleted) VALUES (0)"
+        conn.Execute str_sql
+        str_sql = "SELECT message_id FROM " & Load.sources.service_messages_table & " ORDER BY message_id DESC LIMIT 1"
+        Set rs = utilities.create_adodb_rs(conn, str_sql)
+            id = rs!message_id
+        rs.Close
+    Else
+        id = Me!header_message_id
+    End If
+    str_sql = "UPDATE " & Load.sources.service_messages_table & " SET" _
+        & " message_text = '" & Replace(Me!header_message_text, "'", "''") & "'" _
+        & ", message_priority = '" & Me!header_message_priority & "'" _
+        & ", message_type = '" & Me!header_message_type & "'" _
+        & ", for_stella_uw_eur_id = " & Me!header_for_stella_uw_eur_id _
+        & ", for_stella_uw_usa_id = " & Me!header_for_stella_uw_usa_id _
+        & ", for_cm_eur_id = " & Me!header_for_cm_eur_id _
+        & ", for_cm_usa_id = " & Me!header_for_cm_usa_id _
+        & ", for_stella_admin_eur_id = " & Me!header_for_stella_admin_eur_id _
+        & ", start_date = '" & utilities.generate_sql_date(Me!header_start_date) & "'" _
+        & ", end_date = '" & utilities.generate_sql_date(Me!header_end_date) & "'" _
+        & " WHERE message_id = " & id
+    conn.Execute str_sql, adExecuteNoRecords
+    Me!cmd_add_change.Caption = "add"
+    
+    'Update recordsource
+    fix_rs.service_messages_f
+    
+    service_messages.reset_input_fields
+    Me!header_extended_info = ""
+outro:
+    If Not rs Is Nothing Then
+        If rs.State = 1 Then rs.Close
+        Set rs = Nothing
+    End If
+    Exit Sub
+err_handler:
+    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
+        & "Error number: " & Err.Number & vbNewLine _
+        & "Error description: " & Err.Description & vbNewLine _
+        & "Where: service_messages_f.cmd_add_change" & vbNewLine _
+        & "Parameters: n/a" & vbNewLine _
+        & "App: CM Admin Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
+End Sub
+
+Private Sub cmd_extended_info_Click()
+    Load.check_conn_and_variables
+    open_forms.extended_info_f
+    Dim str_form As String
+    str_form = "extended_info_f"
+    With Forms(str_form)
+        !message_id = Me!header_message_id
+        Dim message_address As String
+        message_address = Load.system_info.system_paths.messages_path & "message_id_" & Me!header_message_id & ".html"
+        !message_text = Me!message_text
+        If Dir(message_address) <> "" Then
+            !extended_info_plain = utilities.get_html(message_address)
+            !extended_info_rich = !extended_info_plain
+        End If
+    End With
+End Sub
+
+Private Sub cmd_change_Click()
+    'intro
+    On Error GoTo err_handler
+    Load.check_conn_and_variables
+    
+    'Populate change form with current data
+    Dim input_controls() As Variant
+    input_controls = service_messages.declare_fields
+    Dim str_sql As String, i As Integer
+    str_sql = "SELECT * FROM " & sources.service_messages_view & " WHERE message_id = " & Me!message_id
+    Dim rs As ADODB.Recordset
+    Set rs = utilities.create_adodb_rs(conn, str_sql)
+        With Me
+            For i = 1 To input_controls(0, 0)
+                If IsNull(rs.Fields(input_controls(i, 0))) = False Then
+                    .Controls("header_" & input_controls(i, 0)) = rs.Fields(input_controls(i, 0))
+                End If
+            Next i
+        End With
+    rs.Close
+    Set rs = Nothing
+    
+    'set extended info
+    Dim message_address As String
+    message_address = Load.system_info.system_paths.messages_path & "message_id_" & Me!message_id & ".html"
+    If Dir(message_address) <> "" Then
+        Me!header_extended_info = utilities.get_html(message_address)
+    End If
+    
+    With Me
+        !cmd_add_change.Caption = "update"
+        !cmd_extended_info.Visible = True
+        !header_extended_info.Visible = True
+        !header_extended_info_lbl.Visible = True
+    End With
+    Exit Sub
+err_handler:
+    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
+        & "Error number: " & Err.Number & vbNewLine _
+        & "Error description: " & Err.Description & vbNewLine _
+        & "Where: service_messages_f.cmd_change_Clicked" & vbNewLine _
+        & "Parameters: n/a " & vbNewLine _
+        & "App: CM Admin Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
+End Sub
+Private Sub cmd_clear_filter_Click()
+    Load.check_conn_and_variables
+    fix_rs.service_messages_f
+End Sub
+Private Sub cmd_delete_Click()
+    Load.check_conn_and_variables
+    Dim str_message As String
+    str_message = "You are about to delete a message. Please confirm."
+    Dim answer As Variant
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        Exit Sub
+    Else
+        conn.Execute "UPDATE " & Load.sources.service_messages_table & " SET is_deleted = 1 WHERE message_id = " & Me!message_id, adExecuteNoRecords
+        fix_rs.service_messages_f
+    End If
+End Sub
+Private Sub cmd_reset_input_Click()
+    service_messages.reset_input_fields
+End Sub
+
+Private Sub header_message_priority_filter_AfterUpdate()
+    Load.check_conn_and_variables
+    fix_rs.service_messages_f "message_priority = '" & Me!header_message_priority_filter & "'"
+End Sub
+Private Sub header_message_type_filter_AfterUpdate()
+    Load.check_conn_and_variables
+    fix_rs.service_messages_f "message_type = '" & Me!header_message_type_filter & "'"
+End Sub
+
+
+
+
