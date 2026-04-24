@@ -67,7 +67,7 @@ Private Sub cmd_refresh_Click()
 End Sub
 
 Private Sub cmd_set_shown_to_closed_Click()
-    Load.call_stack = Me.Name & ".cmd_set_shown_to_closed.Click"
+    Load.call_stack = Me.name & ".cmd_set_shown_to_closed.Click"
     Load.check_conn_and_variables
     Dim str_where As String, str_sql As String
     
@@ -196,7 +196,7 @@ Private Sub header_app_name_AfterUpdate()
 End Sub
 
 Private Sub header_routine_name_AfterUpdate()
-    Load.call_stack = Me.Name & "." & Screen.ActiveControl.Name
+    Load.call_stack = Me.name & "." & Screen.ActiveControl.name
     Load.check_conn_and_variables
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0

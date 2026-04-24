@@ -179,7 +179,7 @@ Private Sub cmd_delete_Click()
     If answer = vbNo Then
         GoTo outro
     Else
-        str_sql = "UPDATE " & Load.sources.uws_table & " SET is_deleted = 1 WHERE uw_id = " & uw_id
+        str_sql = "UPDATE " & Load.sources.underwriters_table & " SET is_deleted = 1 WHERE uw_id = " & uw_id
         conn.Execute str_sql
         str_sql = "UPDATE " & Load.sources.employee_role_links_table & " SET is_deleted = 1 WHERE uw_id__underwriters_t = " & uw_id
         conn.Execute str_sql
@@ -558,8 +558,8 @@ Private Sub header_cmd_switch_source_Click()
     Load.check_conn_and_variables
     
     If user_management.current_source = "" Or user_management.current_source = Load.sources.uw_roles_view Then
-        fix_rs.uws_f " AND employed = 93", Load.sources.uws_view
-        user_management.current_source = Load.sources.uws_view
+        fix_rs.uws_f " AND employed = 93", Load.sources.underwriters_view
+        user_management.current_source = Load.sources.underwriters_view
     Else
         fix_rs.uws_f "", Load.sources.uw_roles_view
         user_management.current_source = Load.sources.uw_roles_view

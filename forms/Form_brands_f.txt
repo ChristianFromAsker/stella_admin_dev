@@ -22,7 +22,7 @@ Private Sub cmd_show_all_Click()
     End With
 End Sub
 Private Sub cmd_cancel_Click()
-    DoCmd.Close acForm, Me.Name
+    DoCmd.Close acForm, Me.name
 End Sub
 Private Sub cmd_change_Click()
     'intro

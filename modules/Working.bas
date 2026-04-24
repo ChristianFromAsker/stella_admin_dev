@@ -105,13 +105,11 @@ Public Sub folder_check(ByVal Path As Object)
         path_actual_compare = Split(objFolder, "R i s k P o i n t")(1)
         
         If path_normative_compare <> path_actual_compare Then
-            ' In case folder is in use or otherwise not accessible
-            On Error Resume Next
             ' Logs the changes in case they need to be reversed or reviewed.
             WriteText vbNewLine & Now() & " Attempting to move from " & objFolder.Path & " to " & vbNewLine & path_normative
             ' Check whether there is a folder at the destination already. If yes, there is duplicate deal folders and human intervenation is needed.
             If Dir(path_normative, vbDirectory) = "" Then
-                If Working.moved_folder_counter > 20 Then
+                If Working.moved_folder_counter > 50 Then
                     Working.folder_check_shall_stop = True
                     Exit For
                 End If
@@ -121,8 +119,15 @@ Public Sub folder_check(ByVal Path As Object)
                     Debug.Print ""
                 End If
                 Set fso = CreateObject("scripting.filesystemobject")
+                
+                ' In case folder is in use or otherwise not accessible
+                On Error Resume Next
                 fso.movefolder objFolder.Path, path_normative
+                On Error GoTo err_handler
+                If Load.is_debugging = True Then On Error GoTo 0
+    
                 Working.moved_folder_counter = Working.moved_folder_counter + 1
+                
                 If Dir(path_normative, vbDirectory) = "" Then
                     WriteText vbNewLine & Now() & " Move failed!"
                 Else

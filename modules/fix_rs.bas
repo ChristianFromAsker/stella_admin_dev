@@ -588,7 +588,7 @@ Public Sub templates_f()
     If CurrentProject.AllForms(str_form).IsLoaded = False Then
         GoTo outro
     End If
-    str_sql = "SELECT * FROM " & sources.templates_table & " WHERE is_deleted = 0 ORDER BY template_name"
+    'str_sql = "SELECT * FROM " & sources.templates_table & " WHERE is_deleted = 0 ORDER BY template_name"
     Set rs = utilities.create_adodb_rs(conn, str_sql)
         Set Forms(str_form).Recordset = rs
     rs.Close

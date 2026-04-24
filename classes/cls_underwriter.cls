@@ -32,7 +32,7 @@ Public Sub init_uw(Optional input_uw_id As Long)
     
     str_sql = "SELECT uw_id, uw_initials, uw_name, user_name, has_admin_access_id, nickname, budget_home_id " _
         & ", can_change_general_id, can_change_jurisdictions_id, can_change_uws_id, can_change_budget_home_id, is_dev_id, is_regional_lead_id" _
-        & " FROM " & sources.uws_table _
+        & " FROM " & sources.underwriters_table _
         & " WHERE " & str_where
         
     Set rs = utilities.create_adodb_rs(conn, str_sql)

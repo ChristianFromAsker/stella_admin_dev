@@ -6,30 +6,40 @@ Option Compare Database
 Option Explicit
 
 Public awac_conversion_path As String
+
 Public base_path As String
 Public base_path_eur As String
 Public base_path_us As String
 Public bound_folder As String
 
 Public cm_admin As String
+Public cm_path As String
+Public cm_path_file As String
 Public common_path As String
 Public common_path_eur As String
 Public common_path_us As String
 
+Public guides As String
 Public images_path As String
+Public images_path_stella_admin As String
 Public individual_path_eur As String
 Public individual_path_us As String
-Public intranet As String
 
-Public logs_folder As String
+Public loader_path As String
+Public log_call_stack_file As String
 Public log_for_folder_moving As String
+Public logs_folder As String
+
+Public mysql_backup_path As String
 Public messages_path As String
 Public non_bound_folder As String
 
 Public old_stella_versions As String
+
+Public placeholder_path As String
 Public placeholder_path_published_eur As String
 Public placeholder_path_published_us As String
-Public published As String
+Public published_docs As String
 Public published_eur As String
 Public published_us As String
 Public pws As String
@@ -39,6 +49,8 @@ Public reports_app As String
 Public root_deal_path As String
 
 Public scripts_path As String
+Public scripts_path_secondary As String
+Public snake_game As String
 Public stable_builds As String
 Public stable_builds_us As String
 Public stella_app_location_general As String
@@ -46,14 +58,17 @@ Public stella_app_location_general_network As String
 Public stella_app_location_individual As String
 Public stella_app_location_individual_network As String
 Public stella_exports As String
+Public stella_images_cm As String
 Public stella_path As String
 Public stella_path_eur As String
 Public stella_path_us As String
 Public stella_templates As String
 
 Public template_path As String
+Public temp_folder As String
 
 Public working_folder As String
+
 Public Sub init()
     Const proc_name As String = "cls_system_paths.init"
     utilities.call_stack_add_item proc_name
@@ -66,8 +81,7 @@ Public Sub init()
     Dim str_milestone As String
     
     With Me
-        'International
-        str_milestone = "1"
+        'international
         drive_path_eur = "\\file01-weu-prd\data$\Data\"
         .base_path_eur = drive_path_eur & "R i s k P o i n t\Denmark\35 M&A\"
         
@@ -83,8 +97,7 @@ Public Sub init()
         .published_eur = .stella_path_eur & "published\"
         .placeholder_path_published_eur = .published_eur & "placeholders\"
         
-        'Americas
-        str_milestone = "2"
+        'americas
         drive_path_us = "\\C325-us-file01\325-us-data$\Data\"
         .base_path_us = drive_path_us & "system\"
         
@@ -95,72 +108,67 @@ Public Sub init()
         .placeholder_path_published_us = .published_us & "placeholders\"
         
         'logical
-        str_milestone = "3"
         If Load.system_info.ip_current = Load.system_info.continents.eurasia_ip Then
-            .base_path = .base_path_eur
-            root_deal_path = drive_path & .base_path_eur
+            drive_path = "\\file01-weu-prd\data$\Data\"
+            base_path = drive_path & "R i s k P o i n t\Denmark\35 M&A\"
+            root_deal_path = drive_path & "R i s k P o i n t\Denmark\35 M&A\"
             template_path = base_path & "Templates\"
-            .stella_app_location_individual = .individual_path_eur
+            loader_path = .base_path & "stella\published\Stella UW.accdb"
         ElseIf Load.system_info.ip_current = Load.system_info.continents.america_ip Then
-            .base_path = .base_path_us
-            .root_deal_path = drive_path_us & "deals\"
-            .template_path = base_path_us & "stella_templates\"
-            .stella_app_location_individual = .individual_path_us
+            drive_path = "\\C325-us-file01\325-us-data$\Data\"
+            base_path = drive_path & "system\"
+            root_deal_path = drive_path & "deals\"
+            template_path = base_path & "stella_templates\"
+            loader_path = base_path & "stella_us"
         Else
             '1 September 2025, CK: This should only happen when CK test Stella outside the AVD.
             drive_path = "F:\"
             base_path = drive_path & "R i s k P o i n t\Denmark\35 M&A\"
             root_deal_path = drive_path & "R i s k P o i n t\Denmark\35 M&A\"
             template_path = base_path & "Templates\"
+            loader_path = .base_path & "stella\published\Stella UW.accdb"
         End If
         
-        str_milestone = "4"
-        .stella_path = .base_path & "Stella\"
-        .common_path = .stella_path & "common\"
-        .images_path = .stella_path & "images\stella_admin\"
-        .messages_path = .stella_path & "messages\"
-        .published = .stella_path & "published\"
-        .rating_tool_template = template_path & "rating_tool\rating_tool.xlsm"
+        .bound_folder = base_path & "M&A - Bound\"
+        .non_bound_folder = base_path & "M&A - Non-bound\"
         
-        .pws = .stella_path & "pws"
-        .stable_builds = .stella_path & "stable_builds\"
-        .stable_builds_us = .base_path_us & "stella\stable_builds\"
-        .stella_exports = .stella_path & "stella_exports\"
-        .stella_templates = .template_path & "stella_templates\"
-    
-        'file paths
-        .reports_app = .common_path & "reports.accdb"
-        .scripts_path = .common_path & "scripts_01.accdb"
-        .cm_admin = .published_eur & "cm_admin.accdb"
+        .working_folder = base_path & "M&A - Working\"
+        .guides = base_path & "guides\"
+        
+        .stella_path = base_path & "Stella\"
+        .awac_conversion_path = stella_path & "awac_excel\"
+        .cm_path = stella_path & "common\"
+        .common_path = .stella_path & "common\"
+        .images_path = .stella_path & "images\"
+        .images_path_stella_admin = .images_path & "stella_admin\"
+        .log_call_stack_file = .stella_path & "logs\call_stack.txt"
         .logs_folder = .stella_path & "logs\"
         .log_for_folder_moving = .logs_folder & "log for folder moving.txt"
-    
+        .messages_path = .stella_path & "messages\"
+        .mysql_backup_path = .stella_path & "mysql_backups\"
+        .placeholder_path = .stella_path & "published\placeholders\"
+        .published_docs = .stella_path & "published\docs\"
+        .pws = .stella_path & "pws"
+        .stable_builds = .stella_path & "stable_builds\"
+        .stella_app_location_general = .stella_path & "\published"
+        .stella_app_location_individual = .stella_path & "\published\individual\"
+        .stella_images_cm = .stella_path & "images\cm\"
+        .temp_folder = .stella_path & "temp\"
+        
+        'file paths
+        .cm_admin = .published_eur & "cm_admin.accdb"
+        .cm_path_file = cm_path & "cm_uw.accdb"
+        .rating_tool_template = .template_path & "rating_tool\rating_tool.xlsm"
+        .reports_app = .common_path & "reports.accdb"
+        .scripts_path = .common_path & "scripts.accdb"
+        .scripts_path_secondary = .common_path & "scripts_01.accdb"
+        .snake_game = .stable_builds & "snake.xlsm"
+        
     End With
-    
 outro:
     utilities.call_stack_remove_last_item False
     Exit Sub
 err_handler:
-
-    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
-        & "Error number: " & Err.Number & vbNewLine _
-        & "Error description: " & Err.Description & vbNewLine _
-        & "Where: " & proc_name & vbNewLine _
-        & "Milestone: " & str_milestone & vbNewLine _
-        & "Parameters: n/a" & vbNewLine _
-        & "Call stack: " & Load.call_stack & vbNewLine _
-        & "App: Stella Admin", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
-    GoTo outro
-    
-    Dim err_object As cls_err_object
-    Set err_object = New cls_err_object
-    With err_object
-        .routine_name = "cls_system_paths.init"
-        .milestone = str_milestone
-        .params = ""
-        .system_error_code = Err.Number
-        .system_error_text = Err.Description
-        .show_error_msg = False
-        .send_error err_object
-    End With
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
 End Sub

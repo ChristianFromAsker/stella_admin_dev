@@ -13,7 +13,7 @@ Public Sub entry()
     Dim outRoot As String
     
     open_forms.working_on_it_f "Exporting code.", "Hold on please.", 5000
-    dbPath = CurrentDb.Name
+    dbPath = CurrentDb.name
 
     outRoot = BuildExportRoot(EXPORT_ROOT_FOLDER, dbPath)
 
@@ -66,6 +66,21 @@ Public Sub import_resource()
     dct_resource.Add "resource_ending", "bas"
     col_resources.Add dct_resource
     
+    Set dct_resource = New Scripting.Dictionary
+    dct_resource.Add "resource_name", "cls_system_paths"
+    dct_resource.Add "resource_path", "D:\riskpoint\stella\stella_uw_dev\classes\" & dct_resource("resource_name")
+    dct_resource.Add "resource_type", acModule
+    dct_resource.Add "resource_ending", "cls"
+    col_resources.Add dct_resource
+    
+    Set dct_resource = New Scripting.Dictionary
+    dct_resource.Add "resource_name", "cls_sources"
+    dct_resource.Add "resource_path", "D:\riskpoint\stella\stella_uw_dev\classes\" & dct_resource("resource_name")
+    dct_resource.Add "resource_type", acModule
+    dct_resource.Add "resource_ending", "cls"
+    col_resources.Add dct_resource
+    
+    
     For Each dct_resource In col_resources
         Application.LoadFromText dct_resource("resource_type"), dct_resource("resource_name"), dct_resource("resource_path") & "." & dct_resource("resource_ending")
     Next dct_resource
@@ -86,20 +101,20 @@ Public Sub entry__export_all(ByVal outRoot As String, ByVal full_export As Boole
         Select Case vbComp.Type
             Case 1 ' vbext_ct_StdModule
                 ext = "bas"
-                outPath = outRoot & "\modules\" & vbComp.Name & "." & ext
-                Application.SaveAsText acModule, vbComp.Name, outPath
+                outPath = outRoot & "\modules\" & vbComp.name & "." & ext
+                Application.SaveAsText acModule, vbComp.name, outPath
 
             Case 2 ' vbext_ct_ClassModule
                 ext = "cls"
-                outPath = outRoot & "\classes\" & vbComp.Name & "." & ext
-                Application.SaveAsText acModule, vbComp.Name, outPath
+                outPath = outRoot & "\classes\" & vbComp.name & "." & ext
+                Application.SaveAsText acModule, vbComp.name, outPath
             Case 100
                 ext = "txt"
-                outPath = outRoot & "\forms\" & vbComp.Name & "." & ext
+                outPath = outRoot & "\forms\" & vbComp.name & "." & ext
                 vbComp.Export outPath
                 If full_export = True Then
-                    outPath = outRoot & "\forms_full\" & Split(vbComp.Name, "orm_")(1) & "." & ext
-                    Application.SaveAsText acForm, Split(vbComp.Name, "orm_")(1), outPath
+                    outPath = outRoot & "\forms_full\" & Split(vbComp.name, "orm_")(1) & "." & ext
+                    Application.SaveAsText acForm, Split(vbComp.name, "orm_")(1), outPath
                 End If
             Case Else
         End Select

@@ -118,7 +118,7 @@ Public Sub check_secondary_access_app()
         'Therefore, need to check if the app is available via a try-catch solution
         secondary_app_name = ""
         On Error Resume Next
-            secondary_app_name = Load.secondary_access_app.CurrentDb.Name
+            secondary_app_name = Load.secondary_access_app.CurrentDb.name
         On Error GoTo err_handler
         If Load.is_debugging = True Then On Error GoTo 0
         If secondary_app_name = "" Then
@@ -272,7 +272,7 @@ Public Sub remove_images_from_access_file()
     With rs
         .OpenRecordset
         Do Until .EOF
-            If InStr(1, rs!Name, "main_menu") Then
+            If InStr(1, rs!name, "main_menu") Then
                 .Delete
             End If
             .MoveNext
@@ -291,7 +291,7 @@ Public Sub init_country_list_array()
     Dim rs As ADODB.Recordset
     Dim str_sql As String
     
-    str_sql = "SELECT jurisdiction_id, jurisdiction FROM " & sources.jurisdictions_view & " WHERE jurisdiction_type = 'country' ORDER BY jurisdiction"
+    str_sql = "SELECT jurisdiction_id, jurisdiction FROM " & Load.sources.jurisdictions_view & " WHERE jurisdiction_type = 'country' ORDER BY jurisdiction"
     Set rs = utilities.create_adodb_rs(conn, str_sql)
     'rs. Open
         i = 1
@@ -335,7 +335,7 @@ Public Sub init_array_underwriters()
     & ", has_admin_access_id" _
     & ", is_dev_id, is_employed_id" _
     & ", user_name, user_type_id, uw_initials, uw_name, nickname" _
-    & " FROM " & Load.sources.uws_view _
+    & " FROM " & Load.sources.underwriters_view _
     & " ORDER BY uw_initials"
     
     Set rs = utilities.create_adodb_rs(conn, str_sql)

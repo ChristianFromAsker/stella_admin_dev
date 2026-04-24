@@ -10,7 +10,7 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 Private Sub cmd_cancel_Click()
-    DoCmd.Close acForm, Me.Name
+    DoCmd.Close acForm, Me.name
 End Sub
 Private Sub cmd_change_Click()
     Load.check_conn_and_variables
@@ -89,17 +89,17 @@ Private Sub cmd_add_Click()
     Me!cmd_add.Caption = "Add"
 End Sub
 Private Sub cmd_delete_Click()
-    Load.check_conn_and_variables
-    Dim str_message As String
-    str_message = "You are about to delete " & Me!template_name & ". Please confirm."
-    Dim answer As Variant
-    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
-    If answer = vbNo Then
-        Exit Sub
-    Else
-        conn.Execute "UPDATE " & sources.templates_table & " SET is_deleted = 1 WHERE id = " & Me!id
-        fix_rs.templates_f
-    End If
+'    Load.check_conn_and_variables
+'    Dim str_message As String
+'    str_message = "You are about to delete " & Me!template_name & ". Please confirm."
+'    Dim answer As Variant
+'    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+'    If answer = vbNo Then
+'        Exit Sub
+'    Else
+'        conn.Execute "UPDATE " & sources.templates_table & " SET is_deleted = 1 WHERE id = " & Me!id
+'        fix_rs.templates_f
+'    End If
 End Sub
 Private Sub cmd_refresh_Click()
     Load.check_conn_and_variables

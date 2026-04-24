@@ -1281,68 +1281,68 @@ err_handler:
     GoTo outro
 End Sub
 Public Sub templates_f()
-    On Error GoTo err_handler
-    If Load.is_init = False Then Central.stella_init
-    
-    Dim str_form As String: str_form = "add_templates_f"
-    If CurrentProject.AllForms(str_form).IsLoaded = False Then DoCmd.OpenForm str_form
-    fix_rs.templates_f
-    With Forms(str_form)
-        .SetFocus
-        DoCmd.MoveSize Right:=200, Down:=200, Width:=16000, Height:=6000
-        .FormFooter.Height = 100
-        !new_id = ""
-        Dim control_count As Integer
-        Dim arr_controls() As Variant
-        ReDim arr_controls(0 To 50, 0 To 1)
-        control_count = 0
-        arr_controls(control_count, 0) = "new_file_name"
-        arr_controls(control_count, 1) = "SELECT id, file_name menu_item FROM " & sources.templates_table & " ORDER BY file_name"
-        control_count = control_count + 1
-        
-        'remove old values
-        Dim i As Integer
-        For i = 0 To control_count - 1
-            Do While .Controls(arr_controls(i, 0)).ListCount > 0
-                .Controls(arr_controls(i, 0)).RemoveItem (0)
-            Loop
-        Next i
-        
-        'add items to folder combo box
-        Dim template_folder As Object, folder As Object, templates_folder_path As String
-        templates_folder_path = Load.system_info.system_paths.template_path & "stella_templates\"
-        With !new_folder
-            Do While .ListCount > 0
-                .RemoveItem (0)
-            Loop
-            Set template_folder = CreateObject("Scripting.FileSystemObject")
-            For Each folder In template_folder.getfolder(templates_folder_path).SubFolders
-                .AddItem CStr(folder.Name)
-            Next folder
-            Set template_folder = Nothing
-        End With
-        
-        'add new values
-        Dim str_sql As String
-        Dim rs As ADODB.Recordset
-        For i = 0 To control_count - 1
-            str_sql = arr_controls(i, 1)
-            Set rs = utilities.create_adodb_rs(conn, str_sql)
-            Dim check_helper As Variant
-            check_helper = -1
-            Do While rs.EOF = False
-                'several items don't have a menu info, and vba cannot check if fields exists (nor can it try-catch)
-                If check_helper = -1 Then
-                    .Controls(arr_controls(i, 0)).AddItem rs!id & ";" & rs!menu_item
-                Else
-                    .Controls(arr_controls(i, 0)).AddItem rs!id & ";" & rs!menu_item & ";'" & rs!menu_info & "'"
-                End If
-                rs.MoveNext
-            Loop
-            rs.Close
-        Next i
-        Set rs = Nothing
-    End With
+'    On Error GoTo err_handler
+'    If Load.is_init = False Then Central.stella_init
+'
+'    Dim str_form As String: str_form = "add_templates_f"
+'    If CurrentProject.AllForms(str_form).IsLoaded = False Then DoCmd.OpenForm str_form
+'    fix_rs.templates_f
+'    With Forms(str_form)
+'        .SetFocus
+'        DoCmd.MoveSize Right:=200, Down:=200, Width:=16000, Height:=6000
+'        .FormFooter.Height = 100
+'        !new_id = ""
+'        Dim control_count As Integer
+'        Dim arr_controls() As Variant
+'        ReDim arr_controls(0 To 50, 0 To 1)
+'        control_count = 0
+'        arr_controls(control_count, 0) = "new_file_name"
+'        arr_controls(control_count, 1) = "SELECT id, file_name menu_item FROM " & sources.templates_table & " ORDER BY file_name"
+'        control_count = control_count + 1
+'
+'        'remove old values
+'        Dim i As Integer
+'        For i = 0 To control_count - 1
+'            Do While .Controls(arr_controls(i, 0)).ListCount > 0
+'                .Controls(arr_controls(i, 0)).RemoveItem (0)
+'            Loop
+'        Next i
+'
+'        'add items to folder combo box
+'        Dim template_folder As Object, folder As Object, templates_folder_path As String
+'        templates_folder_path = Load.system_info.system_paths.template_path & "stella_templates\"
+'        With !new_folder
+'            Do While .ListCount > 0
+'                .RemoveItem (0)
+'            Loop
+'            Set template_folder = CreateObject("Scripting.FileSystemObject")
+'            For Each folder In template_folder.getfolder(templates_folder_path).SubFolders
+'                .AddItem CStr(folder.name)
+'            Next folder
+'            Set template_folder = Nothing
+'        End With
+'
+'        'add new values
+'        Dim str_sql As String
+'        Dim rs As ADODB.Recordset
+'        For i = 0 To control_count - 1
+'            str_sql = arr_controls(i, 1)
+'            Set rs = utilities.create_adodb_rs(conn, str_sql)
+'            Dim check_helper As Variant
+'            check_helper = -1
+'            Do While rs.EOF = False
+'                'several items don't have a menu info, and vba cannot check if fields exists (nor can it try-catch)
+'                If check_helper = -1 Then
+'                    .Controls(arr_controls(i, 0)).AddItem rs!id & ";" & rs!menu_item
+'                Else
+'                    .Controls(arr_controls(i, 0)).AddItem rs!id & ";" & rs!menu_item & ";'" & rs!menu_info & "'"
+'                End If
+'                rs.MoveNext
+'            Loop
+'            rs.Close
+'        Next i
+'        Set rs = Nothing
+'    End With
 
 outro:
     Exit Sub

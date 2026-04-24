@@ -146,7 +146,7 @@ Public Sub update_cm(ByVal input_app_continent As String)
     Call fso.CopyFile(source_path, target_path, True)
     
     'copy stable build to production area
-    str_sql = "SELECT uw_id, uw_initials, budget_home_id, is_dev_id FROM " & sources.uws_view & " WHERE is_employed_id = " & menu_list.yes
+    str_sql = "SELECT uw_id, uw_initials, budget_home_id, is_dev_id FROM " & sources.underwriters_view & " WHERE is_employed_id = " & menu_list.yes
     Set rs = utilities.create_adodb_rs(conn, str_sql)
     With rs
         Do Until rs.EOF = True
@@ -215,7 +215,7 @@ Public Sub update_stella_uw(ByVal input_app_continent As String)
     Call fso.CopyFile(source_path, target_path, True)
         
     'copy stable build to production area
-    str_sql = "SELECT uw_id, uw_initials, budget_home_id, is_dev_id FROM " & sources.uws_view & " WHERE is_employed_id = " & menu_list.yes
+    str_sql = "SELECT uw_id, uw_initials, budget_home_id, is_dev_id FROM " & sources.underwriters_view & " WHERE is_employed_id = " & menu_list.yes
     Set rs = utilities.create_adodb_rs(conn, str_sql)
     With rs
         Do Until rs.EOF = True

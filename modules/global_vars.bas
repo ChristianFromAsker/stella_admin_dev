@@ -63,6 +63,7 @@ Public Sub init()
     
     Load.colors.init
     
+    Load.sources.init
     global_vars.init_awac_excels_vars
     global_vars.init_cols
     global_vars.init_variables_types

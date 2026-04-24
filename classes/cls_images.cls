@@ -13,8 +13,8 @@ Private Sub Class_Initialize()
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
     
-    MenuMainF = Load.system_info.system_paths.images_path & "main_menu_02_mountains.jpg"
-    If Month(Date) > 2 Then MenuMainF = Load.system_info.system_paths.images_path & "main_menu_01_forest.jpg"
+    MenuMainF = Load.system_info.system_paths.images_path_stella_admin & "main_menu_02_mountains.jpg"
+    If Month(Date) > 2 Then MenuMainF = Load.system_info.system_paths.images_path_stella_admin & "main_menu_01_forest.jpg"
     
 outro:
     Exit Sub

@@ -183,7 +183,7 @@ Public Sub open_external_resource_app(ByVal app_name As String _
         
         current_db_name = ""
         On Error Resume Next
-        current_db_name = .CurrentDb.Name
+        current_db_name = .CurrentDb.name
         On Error GoTo err_handler
         If Load.is_debugging = True Then On Error GoTo 0
         
@@ -331,91 +331,16 @@ Public Sub stella_init()
     'CK 7 une 2023: legacy module. It's everywhere, so just redirecting to relevant sub rathern than replacing everywhere for now
     Load.init_global_variables
 End Sub
-Public Sub data_logger(ByVal log_object As cls_log_object, ByVal app_continent As String)
-    Const proc_name As String = "central.data_logger"
-    utilities.call_stack_add_item proc_name
-    On Error GoTo err_handler
-    If Load.is_debugging = True Then On Error GoTo 0
-    
-    Dim db_name As String
-    Dim str_sql As String
-    Dim rs As ADODB.Recordset
-    Dim i As Integer
-    Dim input_value As Variant
-        
-    If app_continent = Load.system_info.continents.eurasia Then
-        db_name = "stella_eur."
-    ElseIf app_continent = Load.system_info.continents.americas Then
-        db_name = "stella_us."
-    Else
-        Debug.Print 1 / 0
-    End If
-    If log_object.new_value_var <> "" And log_object.new_value_number <> "" Then
-        MsgBox "Please snip this message to Christian asap." & vbNewLine & vbNewLine _
-            & "Error description: Both log_object.new_value_var and log_object.new_value_number had values." & vbNewLine _
-            & "Where: central.data_logger" & vbNewLine _
-            & "Parameters: log_object.data_set_id = " & log_object.data_set_id & ", log_object.record_id = " & log_object.record_id & vbNewLine _
-            & "App: Stella UW Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
-        GoTo outro
-    End If
-                
-    If log_object.new_value_var <> "" Then
-        str_sql = "INSERT INTO " & db_name & sources.data_log_table & " (data_set_id, field_name, new_value_text, changer_id, comment, record_id) VALUES(" _
-            & log_object.data_set_id _
-            & ", '" & log_object.field_name & "'" _
-            & ", '" & log_object.new_value_var & "'" _
-            & ", " & log_object.changer_id _
-            & ", '" & log_object.comment & "'" _
-            & ", " & log_object.record_id _
-            & ")"
-    End If
-    
-    If log_object.new_value_number <> "" Then
-        str_sql = "INSERT INTO " & db_name & sources.data_log_table & " (data_set_id, field_name, new_value_number, changer_id, comment, record_id) VALUES(" _
-            & log_object.data_set_id _
-            & ", '" & log_object.field_name & "'" _
-            & ", " & log_object.new_value_number _
-            & ", " & log_object.changer_id _
-            & ", '" & log_object.comment & "'" _
-            & ", " & log_object.record_id _
-            & ")"
-    End If
-    
-    If log_object.executed_sql <> "" Then
-        str_sql = "INSERT INTO " & db_name & sources.data_log_table & " (data_set_id, executed_sql, changer_id, comment, record_id) VALUES(" _
-            & log_object.data_set_id _
-            & ", '" & Replace(log_object.executed_sql, "'", "''") & "'" _
-            & ", " & log_object.changer_id _
-            & ", '" & log_object.comment & "'" _
-            & ", " & log_object.record_id _
-            & ")"
-    End If
-    
-    conn.Execute str_sql
-outro:
-    If Not rs Is Nothing Then
-        If rs.State = 1 Then rs.Close
-        Set rs = Nothing
-    End If
-    utilities.call_stack_remove_last_item
-    Exit Sub
-err_handler:
-    MsgBox "Something went wrong. Try once more. If it fails again, snip this to Christian." & vbNewLine & vbNewLine _
-        & "Error number: " & Err.Number & vbNewLine _
-        & "Error description: " & Err.Description & vbNewLine _
-        & "Where: central.data_logger" & vbNewLine _
-        & "Parameters: log_object.data_set_id = " & log_object.data_set_id & ", log_object.record_id = " & log_object.record_id & vbNewLine _
-        & "App: Stella Admin Eur", , " Whoopsie daisies (like Hugh Grant in Notting Hill)"
-    GoTo outro
-End Sub
+
 Public Sub auto_archiving()
     'Purpose: Set status for all risks to lost if deal is old and has not been progressed
     'intro
     On Error GoTo err_handler
     If Load.is_init = False Then Central.stella_init
     
+    Dim log_object As utilities.typ_log_object
     Dim rs As ADODB.Recordset
-    Dim log_object As cls_log_object, str_sql As String
+    Dim str_sql As String
     
     'set old deals with status nda to cancelled
     str_sql = "SELECT deal_id FROM stella_eur." & Load.sources.deals_view & " WHERE " _
@@ -427,16 +352,16 @@ Public Sub auto_archiving()
         
         Else
             Do Until rs.EOF = True
-                Set log_object = New cls_log_object
                 With log_object
-                    .changer_id = Load.stella_uw_id
-                    .data_set_id = sources.deals_table_id
+                    .changer_id = Environ("username")
+                    .data_set = Load.sources.deals_table
+                    .deal_id = rs!deal_id
                     .field_name = "deal_status_id"
-                    .new_value_number = deal_statuses.cancelled
+                    .new_value = deal_statuses.cancelled
                     .record_id = rs!deal_id
                 End With
-                Central.data_logger log_object, Load.system_info.continents.eurasia
-                Set log_object = Nothing
+                utilities.log_change log_object
+
                 conn.Execute "UPDATE " & sources.deals_table & " SET deal_status_id = " & deal_statuses.cancelled & " WHERE deal_id = " & rs!deal_id
                 rs.MoveNext
             Loop
@@ -450,16 +375,16 @@ Public Sub auto_archiving()
             GoTo outro
         End If
         Do Until rs.EOF = True
-            Set log_object = New cls_log_object
             With log_object
-                .changer_id = Load.stella_uw_id
-                .data_set_id = sources.deals_table_id
+                .changer_id = Environ("username")
+                .data_set = sources.deals_table
+                .deal_id = rs!deal_id
                 .field_name = "deal_status_id"
-                .new_value_number = deal_statuses.lost
+                .new_value = deal_statuses.lost
                 .record_id = rs!deal_id
             End With
-            Central.data_logger log_object, Load.system_info.continents.eurasia
-            Set log_object = Nothing
+            utilities.log_change log_object
+            
             conn.Execute "UPDATE " & sources.deals_table & " SET deal_status_id = " & deal_statuses.lost & " WHERE deal_id = " & rs!deal_id
             rs.MoveNext
         Loop

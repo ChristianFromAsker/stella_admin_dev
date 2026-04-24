@@ -167,7 +167,7 @@ Public Sub populate_uws_add_f_with_existing_user(ByVal uw_id As Long)
     & ", is_dev_id, is_employed_id, is_regional_lead_id" _
     & ", nickname, start_date, uw_initials, uw_name" _
     & ", user_type_id, user_name " _
-    & " FROM " & Load.sources.uws_table _
+    & " FROM " & Load.sources.underwriters_table _
     & " WHERE uw_id = " & uw_id
     
     Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
@@ -428,7 +428,7 @@ Public Function does_user_exist(ByVal username As String) As Boolean
             
     output = False
     field_name = user_management.uw_data_controls.username.field_name_in_table
-    str_sql = "SELECT uw_id FROM " & Load.sources.uws_table & " WHERE " & field_name & " = '" & username & "'"
+    str_sql = "SELECT uw_id FROM " & Load.sources.underwriters_table & " WHERE " & field_name & " = '" & username & "'"
     Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
         If rs.RecordCount > 0 Then output = True
     rs.Close
@@ -746,9 +746,9 @@ Public Function add_new_uw_id() As Long
     Dim rs As ADODB.Recordset
     Dim str_sql As String
     
-    str_sql = "INSERT INTO " & Load.sources.uws_table & " (is_deleted) VALUES (1)"
+    str_sql = "INSERT INTO " & Load.sources.underwriters_table & " (is_deleted) VALUES (1)"
     conn.Execute str_sql
-    str_sql = "SELECT uw_id FROM " & Load.sources.uws_table & " WHERE is_deleted = 1 ORDER BY uw_id DESC LIMIT 1"
+    str_sql = "SELECT uw_id FROM " & Load.sources.underwriters_table & " WHERE is_deleted = 1 ORDER BY uw_id DESC LIMIT 1"
     Set rs = utilities.create_adodb_rs(conn, str_sql)
     With rs
         add_new_uw_id = !uw_id.Value

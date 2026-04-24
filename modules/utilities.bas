@@ -242,6 +242,44 @@ err_handler:
     Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
     Resume outro
 End Function
+Public Function convert_layer_to_words(ByVal int_layer As Integer) As String
+    Const proc_name As String = "utilities.convert_layer_to_words"
+    utilities.call_stack_add_item proc_name
+    
+    Dim str_return As String
+    If int_layer = 0 Then
+        str_return = "Primary"
+    ElseIf int_layer = 1 Then
+        str_return = "1st xs"
+    ElseIf int_layer = 2 Then
+        str_return = "2nd xs"
+    ElseIf int_layer = 3 Then
+        str_return = "3rd xs"
+    ElseIf int_layer = 4 Then
+        str_return = "4th xs"
+    ElseIf int_layer = 5 Then
+        str_return = "5th xs"
+    ElseIf int_layer = 6 Then
+        str_return = "6th xs"
+    ElseIf int_layer = 7 Then
+        str_return = "7th xs"
+    ElseIf int_layer = 8 Then
+        str_return = "8th xs"
+    ElseIf int_layer = 9 Then
+        str_return = "9th xs"
+    ElseIf int_layer = 10 Then
+        str_return = "10th xs"
+    ElseIf int_layer = 11 Then
+        str_return = "11th xs"
+    ElseIf int_layer = 12 Then
+        str_return = "12th xs"
+    End If
+    convert_layer_to_words = str_return
+outro:
+    utilities.call_stack_remove_last_item False
+    Exit Function
+End Function
+
 Public Function get_txt_from_file(ByVal file_path As String) As String
     Const proc_name As String = "utilities.get_txt_from_file"
     utilities.call_stack_add_item proc_name
@@ -399,10 +437,11 @@ err_handler:
     Resume outro
 End Sub
 Public Sub log_change__field_change( _
-ByRef log_obj_base As utilities.typ_log_object _
-, ByVal field_name As String _
-, ByVal new_val As Variant)
-    
+    ByRef log_obj_base As utilities.typ_log_object, _
+    ByVal field_name As String, _
+    ByVal new_val As Variant, _
+    ByVal data_set As String _
+)
     Const proc_name As String = "utilities.log_change__field_change"
     utilities.call_stack_add_item proc_name
     On Error GoTo err_handler
@@ -414,7 +453,8 @@ ByRef log_obj_base As utilities.typ_log_object _
 
     log_obj.field_name = field_name
     log_obj.new_value = new_val
-
+    log_obj.data_set = data_set
+    
     log_change log_obj
 outro:
     utilities.call_stack_remove_last_item

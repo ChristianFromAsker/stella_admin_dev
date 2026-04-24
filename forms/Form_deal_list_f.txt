@@ -70,7 +70,7 @@ Private Sub cmd_export_sensitive_Click()
     If Load.is_debugging = True Then On Error GoTo 0
     
     Dim str_sql As String, rs As ADODB.Recordset
-    str_sql = "SELECT uw_id, uw_name FROM " & Load.sources.uws_view _
+    str_sql = "SELECT uw_id, uw_name FROM " & Load.sources.underwriters_view _
         & " WHERE is_super_duper_trusted = 'yes' AND user_name = '" & Environ("username") & "'"
     Set rs = utilities.create_adodb_rs(conn, str_sql)
     With rs

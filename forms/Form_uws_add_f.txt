@@ -54,7 +54,7 @@ Private Sub cmd_add_Click()
     Next form_field
     
     If col_fields.Count > 0 Then
-        utilities.paint_control Me.Name, col_fields
+        utilities.paint_control Me.name, col_fields
         GoTo outro
     End If
     
@@ -77,7 +77,7 @@ Private Sub cmd_add_Click()
     str_user_name = Me.Controls(user_management.uw_data_controls.username.field_name)
     
     'check if this is a new user
-    str_sql = "SELECT uw_id, is_deleted FROM " & Load.sources.uws_table & " WHERE uw_id = " & uw_id
+    str_sql = "SELECT uw_id, is_deleted FROM " & Load.sources.underwriters_table & " WHERE uw_id = " & uw_id
     Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
     new_user = False
     If rs!is_deleted = 1 Then new_user = True
@@ -93,7 +93,7 @@ Private Sub cmd_add_Click()
     
     'Add data to record
     With user_management.uw_data_controls
-        str_sql = "UPDATE " & Load.sources.uws_table & " SET " _
+        str_sql = "UPDATE " & Load.sources.underwriters_table & " SET " _
         & "uw_initials = '" & Me.Controls(.uw_initials.field_name) & "'" & vbNewLine _
         & ", uw_name = '" & Me.Controls(.uw_name.field_name) & "'" & vbNewLine _
         & ", is_employed_id = " & Me.Controls(.is_employed_id.field_name) & vbNewLine _
@@ -130,7 +130,7 @@ Private Sub cmd_add_Click()
     End If
     
     fix_rs.uws_f_refresh
-    DoCmd.Close acForm, Me.Name
+    DoCmd.Close acForm, Me.name
     
 outro:
     utilities.call_stack_remove_last_item True

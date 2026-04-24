@@ -89,7 +89,7 @@ Public Sub init()
         
         .us_states = "SELECT jurisdiction_id id, jurisdiction menu_item FROM " & Load.sources.jurisdictions_view & " WHERE jurisdiction_type = 'us_state' ORDER BY jurisdiction"
 
-        .uws = "SELECT id, uw_initials menu_item, uw_name menu_info FROM " & sources.uws_view _
+        .uws = "SELECT id, uw_initials menu_item, uw_name menu_info FROM " & sources.underwriters_view _
         & " WHERE is_employed_id = 93 AND user_type = 150 ORDER BY uw_initials"
 
         .uws_that_have_quote_righst = "SELECT uw_id id, uw_initials menu_item, uw_name menu_info FROM " & Load.sources.approval_rights_view _
