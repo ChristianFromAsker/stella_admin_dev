@@ -133,7 +133,8 @@ Public Sub folder_check(ByVal Path As Object)
                 Else
                     WriteText vbNewLine & Now() & " Move succeded!"
                 End If
-                fso.Close
+                '23 April 2026. Got error on this line. Never had that before. To be investigated whether fso.close is good practice or should not be there.
+                'fso.Close
                 Set fso = Nothing
             Else
                 WriteText vbNewLine & Now() & " Folder was already there. Duplicate folder warning!"

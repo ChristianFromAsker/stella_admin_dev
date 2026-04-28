@@ -1,0 +1,734 @@
+Version =21
+VersionRequired =20
+PublishOption =1
+Checksum =92158479
+Begin Form
+ AllowFilters = NotDefault
+ PopUp = NotDefault
+ RecordSelectors = NotDefault
+ NavigationButtons = NotDefault
+ AllowDeletions = NotDefault
+ DividingLines = NotDefault
+ AllowAdditions = NotDefault
+ AllowDesignChanges = NotDefault
+ AllowUpdating =2
+ ScrollBars =2
+ PictureAlignment =2
+ DatasheetGridlinesBehavior =3
+ GridY =10
+ Width =19152
+ DatasheetFontHeight =11
+ ItemSuffix =150
+ Left =195
+ Top =195
+ Right =6900
+ Bottom =4545
+ DatasheetGridlinesColor =14806254
+ RecSrcDt = Begin
+ 0x44b58718d620e640
+ End
+ GUID = Begin
+ 0x1600b8e6593add428dbcde7b20d000ea
+ End
+ NameMap = Begin
+ 0x0acc0e5500000000000000000000000000000000000000000c00000005000000 ,
+ 0x0000000000000000000000000000
+ End
+ Caption ="add or change product"
+ DatasheetFontName ="Calibri"
+ PrtMip = Begin
+ 0x6801000068010000680100006801000000000000201c0000e010000001000000 ,
+ 0x010000006801000000000000a10700000100000001000000
+ End
+ PrtDevMode = Begin
+ 0x0000000000000000f2de0440e301000001000000000000000a00000000000000 ,
+ 0x010403069c00dc200fdf8103010009009a0b3408640001000700580202000200 ,
+ 0x5802030001004134006d4842ff7f0000b6dc4c5ae301000095e84542ff7f0000 ,
+ 0x0e000000e3010000000000000000000000000000010000000000000001000000 ,
+ 0x020000001d010000ffffffff0000000000000000000000000000000044494e55 ,
+ 0x2200980af40ce813372e789f0000000000000000000000000000000000000000 ,
+ 0x0000000000000000580000000000000000000000000001001600000002000200 ,
+ 0x0000020002000200020002000200020002000200020002000000000000000000
+ End
+ PrtDevModeW = Begin
+ 0x00005c46f77f0000d24b0746f77f000000000000000000000000000000000000 ,
+ 0x60ba1bf0d8000000010000020000000001000000000000000000000000000000
+ End
+ PrtDevNames = Begin
+ 0x0800240045000100000000000000000000000000000000000000000000000000 ,
+ 0x0000000000000000000000000000000000000000000000000000000000000000 ,
+ 0x000000000039313030000000000000000000000000000000000000000000
+ End
+ AllowDatasheetView =0
+ FilterOnLoad =0
+ OrderByOnLoad =0
+ ShowPageMargins =0
+ DisplayOnSharePointSite =1
+ DatasheetAlternateBackColor =15921906
+ DatasheetGridlinesColor12 =0
+ FitToScreen =1
+ DatasheetBackThemeColorIndex =1
+ BorderThemeColorIndex =3
+ ThemeFontIndex =1
+ ForeThemeColorIndex =0
+ AlternateBackThemeColorIndex =1
+ AlternateBackShade =95.0
+ Begin
+ Begin Label
+ BackStyle =0
+ FontSize =11
+ BorderColor =8355711
+ ForeColor =6710886
+ FontName ="Calibri"
+ GridlineColor =10921638
+ ThemeFontIndex =1
+ BackThemeColorIndex =1
+ BorderThemeColorIndex =0
+ BorderTint =50.0
+ ForeThemeColorIndex =0
+ ForeTint =60.0
+ GridlineThemeColorIndex =1
+ GridlineShade =65.0
+ End
+ Begin CommandButton
+ Width =1701
+ Height =283
+ FontSize =11
+ FontWeight =400
+ ForeColor =4210752
+ FontName ="Calibri"
+ GridlineColor =10921638
+ ForeThemeColorIndex =0
+ ForeTint =75.0
+ GridlineThemeColorIndex =1
+ GridlineShade =65.0
+ UseTheme =1
+ Shape =1
+ Gradient =12
+ BackColor =14136213
+ BackThemeColorIndex =4
+ BackTint =60.0
+ BorderLineStyle =0
+ BorderColor =14136213
+ BorderThemeColorIndex =4
+ BorderTint =60.0
+ ThemeFontIndex =1
+ HoverColor =15060409
+ HoverThemeColorIndex =4
+ HoverTint =40.0
+ PressedColor =9592887
+ PressedThemeColorIndex =4
+ PressedShade =75.0
+ HoverForeColor =4210752
+ HoverForeThemeColorIndex =0
+ HoverForeTint =75.0
+ PressedForeColor =4210752
+ PressedForeThemeColorIndex =0
+ PressedForeTint =75.0
+ End
+ Begin TextBox
+ AddColon = NotDefault
+ FELineBreak = NotDefault
+ BorderLineStyle =0
+ Width =1701
+ LabelX =-1701
+ FontSize =11
+ BorderColor =10921638
+ ForeColor =4210752
+ FontName ="Calibri"
+ AsianLineBreak =1
+ GridlineColor =10921638
+ BackThemeColorIndex =1
+ BorderThemeColorIndex =1
+ BorderShade =65.0
+ ThemeFontIndex =1
+ ForeThemeColorIndex =0
+ ForeTint =75.0
+ GridlineThemeColorIndex =1
+ GridlineShade =65.0
+ End
+ Begin ComboBox
+ AddColon = NotDefault
+ BorderLineStyle =0
+ Width =1701
+ LabelX =-1701
+ FontSize =11
+ BorderColor =10921638
+ ForeColor =4138256
+ FontName ="Calibri"
+ GridlineColor =10921638
+ AllowValueListEdits =1
+ InheritValueList =1
+ ThemeFontIndex =1
+ BackThemeColorIndex =1
+ BorderThemeColorIndex =1
+ BorderShade =65.0
+ ForeThemeColorIndex =2
+ ForeShade =50.0
+ GridlineThemeColorIndex =1
+ GridlineShade =65.0
+ End
+ Begin EmptyCell
+ Height =240
+ GridlineColor =10921638
+ GridlineThemeColorIndex =1
+ GridlineShade =65.0
+ End
+ Begin FormHeader
+ Height =0
+ BackColor =5855577
+ Name ="FormHeader"
+ GUID = Begin
+ 0x2123b15a35cdac4aa2f22744d8059f58
+ End
+ AlternateBackThemeColorIndex =1
+ AlternateBackShade =95.0
+ BackThemeColorIndex =0
+ BackTint =65.0
+ End
+ Begin Section
+ Height =4240
+ Name ="Detail"
+ GUID = Begin
+ 0x0edddd6ef4c06241ba37d03aa496ca43
+ End
+ AlternateBackColor =15921906
+ AlternateBackThemeColorIndex =1
+ AlternateBackShade =95.0
+ BackThemeColorIndex =1
+ Begin
+ Begin TextBox
+ Locked = NotDefault
+ OldBorderStyle =0
+ OverlapFlags =93
+ TextFontFamily =2
+ BackStyle =0
+ IMESentenceMode =3
+ Left =2454
+ Top =2160
+ Width =2880
+ Height =360
+ FontSize =10
+ ForeColor =0
+ Name ="uw_name"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xb6d2a7b730d8a748b03a3b4e36af9989
+ End
+ LayoutCachedLeft =2454
+ LayoutCachedTop =2160
+ LayoutCachedWidth =5334
+ LayoutCachedHeight =2520
+ BackThemeColorIndex =-1
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin Label
+ OverlapFlags =95
+ TextFontFamily =2
+ Left =150
+ Top =2160
+ Width =2304
+ Height =360
+ FontSize =10
+ ForeColor =0
+ Name ="Label20"
+ Caption ="name of uw"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xf7cb54c659131840b2566d3ac176fe83
+ End
+ LayoutCachedLeft =150
+ LayoutCachedTop =2160
+ LayoutCachedWidth =2454
+ LayoutCachedHeight =2520
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin CommandButton
+ OverlapFlags =85
+ TextFontFamily =2
+ Left =4896
+ Top =1008
+ Height =397
+ FontSize =10
+ TabIndex =2
+ ForeColor =0
+ Name ="cmd_add"
+ Caption ="save"
+ OnClick ="[Event Procedure]"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xe32db0381dca4e488ac0378e1bedda0d
+ End
+ LayoutCachedLeft =4896
+ LayoutCachedTop =1008
+ LayoutCachedWidth =6597
+ LayoutCachedHeight =1405
+ ForeTint =100.0
+ Gradient =0
+ BackColor =16777215
+ BackThemeColorIndex =1
+ BackTint =100.0
+ BorderColor =0
+ BorderThemeColorIndex =0
+ BorderTint =100.0
+ ThemeFontIndex =-1
+ HoverColor =12566463
+ HoverThemeColorIndex =1
+ HoverTint =100.0
+ HoverShade =75.0
+ HoverForeColor =0
+ HoverForeTint =100.0
+ PressedForeColor =0
+ PressedForeTint =100.0
+ WebImagePaddingLeft =2
+ WebImagePaddingTop =2
+ WebImagePaddingRight =1
+ WebImagePaddingBottom =1
+ Overlaps =1
+ End
+ Begin TextBox
+ Locked = NotDefault
+ OldBorderStyle =0
+ OverlapFlags =95
+ TextFontFamily =2
+ BackStyle =0
+ IMESentenceMode =3
+ Left =2454
+ Top =2520
+ Width =1440
+ Height =360
+ FontSize =10
+ TabIndex =3
+ ForeColor =0
+ Name ="uw_id__underwriters_t"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xad9be8cbf81f5448a6db6374cd18b5ff
+ End
+ LayoutCachedLeft =2454
+ LayoutCachedTop =2520
+ LayoutCachedWidth =3894
+ LayoutCachedHeight =2880
+ BackThemeColorIndex =-1
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin Label
+ OverlapFlags =95
+ TextFontFamily =2
+ Left =150
+ Top =2520
+ Width =2304
+ Height =360
+ FontSize =10
+ ForeColor =0
+ Name ="Label66"
+ Caption ="employee id"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xe4ee96fdf3b3cf4ea0a2ab2a668ba01a
+ End
+ LayoutCachedLeft =150
+ LayoutCachedTop =2520
+ LayoutCachedWidth =2454
+ LayoutCachedHeight =2880
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin Label
+ OverlapFlags =93
+ TextFontFamily =2
+ Left =144
+ Top =483
+ Width =1701
+ Height =340
+ FontSize =10
+ ForeColor =0
+ Name ="lbl_start_date"
+ Caption ="start date"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0x415c49efba76684fb31f315dd5c3354f
+ End
+ LayoutCachedLeft =144
+ LayoutCachedTop =483
+ LayoutCachedWidth =1845
+ LayoutCachedHeight =823
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin TextBox
+ OverlapFlags =95
+ TextFontFamily =2
+ IMESentenceMode =3
+ Left =1845
+ Top =483
+ Width =2268
+ Height =340
+ FontSize =10
+ TabIndex =1
+ ForeColor =0
+ Name ="employee_product_start_date"
+ Format ="Medium Date"
+ AfterUpdate ="[Event Procedure]"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xafd4103eeafd4a4789d3ad128de7a9e8
+ End
+ LayoutCachedLeft =1845
+ LayoutCachedTop =483
+ LayoutCachedWidth =4113
+ LayoutCachedHeight =823
+ BackThemeColorIndex =-1
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin Label
+ OverlapFlags =95
+ TextFontFamily =2
+ Left =144
+ Top =823
+ Width =1701
+ Height =340
+ FontSize =10
+ ForeColor =0
+ Name ="lbl_end_date"
+ Caption ="end date"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xd06551e015e22c428e0091af0b9a74f7
+ End
+ LayoutCachedLeft =144
+ LayoutCachedTop =823
+ LayoutCachedWidth =1845
+ LayoutCachedHeight =1163
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin TextBox
+ OverlapFlags =95
+ TextFontFamily =2
+ IMESentenceMode =3
+ Left =1845
+ Top =823
+ Width =2268
+ Height =340
+ FontSize =10
+ TabIndex =4
+ ForeColor =0
+ Name ="employee_product_end_date"
+ Format ="Medium Date"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0x724fcfc8a203354297c57f609e8fe2f6
+ End
+ LayoutCachedLeft =1845
+ LayoutCachedTop =823
+ LayoutCachedWidth =4113
+ LayoutCachedHeight =1163
+ BackThemeColorIndex =-1
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin Label
+ OverlapFlags =87
+ TextFontFamily =2
+ Left =144
+ Top =144
+ Width =2880
+ Height =339
+ FontSize =12
+ FontWeight =700
+ ForeColor =0
+ Name ="Label138"
+ Caption ="employee product data"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0x20c5cdd42d9bd243afc3f3c172731c92
+ End
+ LayoutCachedLeft =144
+ LayoutCachedTop =144
+ LayoutCachedWidth =3024
+ LayoutCachedHeight =483
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin Label
+ OverlapFlags =85
+ TextFontFamily =2
+ Left =156
+ Top =2064
+ Width =2880
+ Height =339
+ FontSize =12
+ FontWeight =700
+ ForeColor =0
+ Name ="lbl_heading_system_generated"
+ Caption ="system generated"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xbdc3aa6ea9fe964c80b846df68639398
+ End
+ LayoutCachedLeft =156
+ LayoutCachedTop =2064
+ LayoutCachedWidth =3036
+ LayoutCachedHeight =2403
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin ComboBox
+ LimitToList = NotDefault
+ RowSourceTypeInt =1
+ OverlapFlags =95
+ TextFontFamily =2
+ IMESentenceMode =3
+ ColumnCount =2
+ Left =1845
+ Top =1163
+ Width =2268
+ Height =340
+ FontSize =10
+ TabIndex =5
+ ForeColor =0
+ GUID = Begin
+ 0x03f366176564c649b8406477732bc994
+ End
+ Name ="employee_product_id__employee_products_t"
+ RowSourceType ="Value List"
+ ColumnWidths ="0;1440"
+ AfterUpdate ="[Event Procedure]"
+ FontName ="Montserrat"
+ AllowValueListEdits =0
+ LayoutCachedLeft =1845
+ LayoutCachedTop =1163
+ LayoutCachedWidth =4113
+ LayoutCachedHeight =1503
+ ThemeFontIndex =-1
+ BackThemeColorIndex =-1
+ ForeThemeColorIndex =0
+ ForeShade =100.0
+ End
+ Begin Label
+ OverlapFlags =87
+ TextFontFamily =2
+ Left =144
+ Top =1163
+ Width =1701
+ Height =340
+ FontSize =10
+ ForeColor =0
+ Name ="lbl_employee_product_id"
+ Caption ="product"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0x60a9d2f6cb6de347bcc2b8711c543b93
+ End
+ LayoutCachedLeft =144
+ LayoutCachedTop =1163
+ LayoutCachedWidth =1845
+ LayoutCachedHeight =1503
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin Label
+ OverlapFlags =87
+ TextFontFamily =2
+ Left =144
+ Top =1503
+ Width =1701
+ Height =340
+ FontSize =10
+ ForeColor =0
+ Name ="lbl_product_allocation"
+ Caption ="allocation"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0x99999999cb6de347bcc2b8711c543b93
+ End
+ LayoutCachedLeft =144
+ LayoutCachedTop =1503
+ LayoutCachedWidth =1845
+ LayoutCachedHeight =1843
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin TextBox
+ OverlapFlags =95
+ TextFontFamily =2
+ IMESentenceMode =3
+ Left =1845
+ Top =1503
+ Width =1008
+ Height =340
+ FontSize =10
+ TabIndex =6
+ ForeColor =0
+ Name ="product_allocation"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0x88888888a203354297c57f609e8fe2f6
+ End
+ LayoutCachedLeft =1845
+ LayoutCachedTop =1503
+ LayoutCachedWidth =2853
+ LayoutCachedHeight =1843
+ BackThemeColorIndex =-1
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin Label
+ OverlapFlags =95
+ TextFontFamily =2
+ Left =150
+ Top =2880
+ Width =2304
+ Height =360
+ FontSize =10
+ ForeColor =0
+ Name ="lbl_employee_product_link_id"
+ Caption ="employee product link id"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xe47951dd60d7374d9840afb879630deb
+ End
+ LayoutCachedLeft =150
+ LayoutCachedTop =2880
+ LayoutCachedWidth =2454
+ LayoutCachedHeight =3240
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ Begin TextBox
+ Locked = NotDefault
+ OldBorderStyle =0
+ OverlapFlags =87
+ TextFontFamily =2
+ BackStyle =0
+ IMESentenceMode =3
+ Left =2454
+ Top =2880
+ Width =1440
+ Height =360
+ FontSize =10
+ TabIndex =7
+ ForeColor =0
+ Name ="employee_product_link_id"
+ FontName ="Montserrat"
+ GUID = Begin
+ 0xfebb9f5721304e40aad488ac2c30fdda
+ End
+ LayoutCachedLeft =2454
+ LayoutCachedTop =2880
+ LayoutCachedWidth =3894
+ LayoutCachedHeight =3240
+ BackThemeColorIndex =-1
+ ThemeFontIndex =-1
+ ForeTint =100.0
+ End
+ End
+ End
+ Begin FormFooter
+ Height =0
+ BackColor =4144959
+ Name ="FormFooter"
+ GUID = Begin
+ 0x187227637e431e43a304084724c63387
+ End
+ AlternateBackThemeColorIndex =1
+ AlternateBackShade =95.0
+ End
+ End
+End
+CodeBehindForm
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub cmd_add_Click()
+ Const proc_name As String = "employee_products_f.cmd_add.click"
+ utilities.call_stack_add_item proc_name
+ On Error GoTo err_handler
+ If Load.is_debugging = True Then On Error GoTo 0
+ 
+ Dim employee_product_link_id As Long
+ Dim end_date As String
+ Dim product_allocation As Double
+ Dim start_date As String
+ Dim stop_proc As Boolean
+ Dim str_sql As String
+ Dim uw_id As Long
+ 
+ Load.check_conn_and_variables
+ stop_proc = False
+ 
+ If IsNull(Me!employee_product_start_date) = True Or Me!employee_product_start_date = "" Then
+ stop_proc = True
+ MsgBox "no start date provided.", , "start date missing"
+ End If
+ 
+ If IsNull(Me!employee_product_id__employee_products_t) = True Or Me!employee_product_id__employee_products_t = "" Then
+ stop_proc = True
+ MsgBox "no product provided.", , "product missing"
+ End If
+ 
+ If IsNull(Me!uw_id__underwriters_t) = True Or Me!uw_id__underwriters_t = "" Then
+ stop_proc = True
+ MsgBox "could not find underwriter. talk to tr it.", , "cannot find underwriter"
+ End If
+ 
+ If stop_proc = True Then
+ GoTo outro
+ End If
+ 
+ uw_id = Me!uw_id__underwriters_t
+ employee_product_link_id = Me!employee_product_link_id
+ start_date = utilities.generate_sql_date(Me!employee_product_start_date)
+ 
+ end_date = "NULL"
+ If IsNull(Me!employee_product_end_date) = False Then
+ If Me!employee_product_end_date <> "" Then
+ end_date = "'" & utilities.generate_sql_date(Me!employee_product_end_date) & "'"
+ End If
+ End If
+ 
+ product_allocation = 1
+ If IsNull(Me!product_allocation) = False Then
+ If Me!product_allocation <> "" Then
+ product_allocation = CDbl(Me!product_allocation)
+ End If
+ End If
+ 
+ str_sql = "UPDATE " & Load.sources.employee_product_links_table _
+ & " SET" _
+ & " employee_product_id__employee_products_t = " & Me!employee_product_id__employee_products_t _
+ & ", employee_product_start_date = '" & start_date & "'" _
+ & ", employee_product_end_date = " & end_date _
+ & ", product_allocation = " & Replace(CStr(product_allocation), ",", ".") _
+ & " WHERE uw_id__underwriters_t = " & uw_id _
+ & " AND employee_product_link_id = " & employee_product_link_id
+ 
+ Load.conn.Execute str_sql
+ fix_rs.uws_f_refresh
+ DoCmd.Close acForm, Me.name
+
+outro:
+ utilities.call_stack_remove_last_item True
+ Exit Sub
+
+err_handler:
+ Central.err_handler proc_name, Err.Number, Err.Description, "str_sql = " & str_sql, "", "", True
+ Resume outro
+End Sub
+
+Private Sub employee_product_id__employee_products_t_AfterUpdate()
+ Me!employee_product_id__employee_products_t.BackColor = Load.colors.white
+End Sub
+
+Private Sub employee_product_start_date_AfterUpdate()
+ Me!employee_product_start_date.BackColor = Load.colors.white
+End Sub

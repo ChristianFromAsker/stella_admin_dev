@@ -1,4 +1,4 @@
 ExportedFrom=D:\RiskPoint\stella\stella_admin_dev\accdbs\stella_admin_dev.accdb
-ExportedAt=2026-04-21 15:34:36
+ExportedAt=2026-04-27 11:24:39
 AccessVersion=16.0
 
