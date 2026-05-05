@@ -70,7 +70,7 @@ Public Sub uw_statistics(ByVal str_condition As String)
     Dim rs As ADODB.Recordset
     Dim str_sql As String
     
-    str_sql = "SELECT * FROM " & Load.sources.uw_roles_view & " WHERE 1 " & str_condition
+    str_sql = "SELECT * FROM " & Load.sources.employees_global_view & " WHERE 1 " & str_condition
     
     Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
         Forms(form_name)!role_count = rs.RecordCount
@@ -92,7 +92,7 @@ err_handler:
     Resume outro
 End Sub
 Public Sub populate_uws_role(ByVal employee_role_link_id As Long, ByVal new_role As Boolean)
-    Const proc_name As String = "user_management.populate_uws_add_f_with_existing_user"
+    Const proc_name As String = "user_management.populate_uws_role"
     utilities.call_stack_add_item proc_name
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
@@ -124,6 +124,42 @@ outro:
     Exit Sub
 err_handler:
     Central.err_handler proc_name, Err.Number, Err.Description, "", "employee_role_link_id = " & employee_role_link_id, "", True
+    Resume outro
+End Sub
+Public Sub populate_uws_product(ByVal employee_product_link_id As Long, ByVal new_product As Boolean)
+    Const proc_name As String = "user_management.populate_uws_product"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Const str_form As String = "employee_products_f"
+    
+    Dim rs As ADODB.Recordset
+    Dim str_sql As String
+    
+    str_sql = "SELECT employee_product_link_id, uw_id, product_id, employee_product_start_date, employee_product_end_date, product_allocation, uw_name" _
+    & " FROM stella_common.employee_product_links_v" _
+    & " WHERE employee_product_link_id = " & employee_product_link_id
+    
+    Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+        With Forms(str_form)
+            !employee_product_link_id = rs!employee_product_link_id
+            !uw_id__underwriters_t = rs!uw_id
+            !uw_name = rs!uw_name
+            If new_product = False Then
+                !employee_product_id__employee_products_t = rs!product_id
+                !employee_product_start_date = rs!employee_product_start_date
+                !employee_product_end_date = rs!employee_product_end_date
+                !product_allocation = rs!product_allocation
+            End If
+        End With
+    rs.Close
+    Set rs = Nothing
+outro:
+    utilities.call_stack_remove_last_item False
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "employee_product_link_id = " & employee_product_link_id, "", True
     Resume outro
 End Sub
 
@@ -176,6 +212,15 @@ Public Sub populate_uws_add_f_with_existing_user(ByVal uw_id As Long)
             Forms(str_form).Controls(.field_name) = rs.Fields(.field_name_in_table)
         End With
     Next form_field
+    rs.Close
+    
+    str_sql = "SELECT uw_id, product_id, role_id FROM " & Load.sources.employees_global_view & " WHERE uw_id = " & uw_id _
+    & " ORDER BY role_id DESC LIMIT 1"
+    Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+        With Forms(str_form)
+            .Controls("employee_role_id") = rs!role_id
+            .Controls("employee_product_id") = rs!product_id
+        End With
     rs.Close
     Set rs = Nothing
 outro:
@@ -305,14 +350,18 @@ err_handler:
     Resume outro
 End Sub
 Public Sub refresh_uws_f()
-    Const proc_name As String = "user_management.refresh_uws_f"
+Const proc_name As String = "user_management.refresh_uws_f"
     utilities.call_stack_add_item proc_name
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
     
+    Const form_name As String = "uws_f"
+    
     Dim budget_condition As String
     Dim fld As cls_field
     Dim input_year As Long
+    Dim employee_name As String
+    Dim name_condition As String
     Dim role_condition As String
     Dim str_condition As String
     Dim year_condition As String
@@ -340,9 +389,17 @@ Public Sub refresh_uws_f()
     If role_condition <> "" Then role_condition = " AND (" & role_condition & ")"
     If budget_condition <> "" Then budget_condition = " AND (" & budget_condition & ")"
     
-    str_condition = year_condition & role_condition & budget_condition
+    name_condition = ""
+    If IsNull(Forms(form_name)!header_filter_employee_name) = False Then
+        employee_name = Forms(form_name)!header_filter_employee_name
+        If employee_name <> "" Then
+            name_condition = " AND uw_name LIKE '%" & employee_name & "%'"
+        End If
+    End If
     
-    If user_management.current_source = "" Then user_management.current_source = Load.sources.uw_roles_view
+    str_condition = year_condition & role_condition & budget_condition & name_condition
+    
+    If user_management.current_source = "" Then user_management.current_source = Load.sources.employees_global_view
     fix_rs.uws_f str_condition, user_management.current_source
     
     user_management.uw_statistics str_condition

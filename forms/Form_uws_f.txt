@@ -10,8 +10,46 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 
+Private Sub cmd_add_product_Click()
+    Const proc_name As String = "uws_f.cmd_add_product.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim employee_product_link_id As Long
+    Dim rs As ADODB.Recordset
+    Dim str_sql As String
+    
+    open_forms.employee_products_f Me!uw_id
+    
+    str_sql = "INSERT INTO " & Load.sources.employee_product_links_table _
+    & " (is_deleted, uw_id__underwriters_t)" _
+    & " VALUES(0, " & Me!uw_id & ")"
+    Load.conn.Execute str_sql
+        
+    str_sql = "SELECT employee_product_link_id" _
+    & " FROM " & Load.sources.employee_product_links_table _
+    & " WHERE is_deleted = 0 AND uw_id__underwriters_t = " & Me!uw_id _
+    & " ORDER BY employee_product_link_id DESC LIMIT 1"
+        
+    Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+        employee_product_link_id = rs!employee_product_link_id
+    rs.Close
+    Set rs = Nothing
+    
+    user_management.populate_uws_product employee_product_link_id, True
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
 Private Sub cmd_add_role_Click()
-Const proc_name As String = "uws_f.cmd_add_role.Click"
+    Const proc_name As String = "uws_f.cmd_add_role.Click"
     utilities.call_stack_add_item proc_name
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
@@ -67,6 +105,57 @@ Private Sub cmd_add_uw_Click()
         col_paint.Add .employee_role_id
     End With
     utilities.paint_control "uws_add_f", col_paint
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+
+Private Sub cmd_change_product_Click()
+Const proc_name As String = "uws_f.cmd_change_product.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim employee_product_link_id As Long
+    Dim new_product As Boolean
+    Dim rs As ADODB.Recordset
+    Dim str_sql As String
+    
+    employee_product_link_id = -1
+    On Error Resume Next
+        employee_product_link_id = Me!employee_product_link_id
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    new_product = False
+    
+    If employee_product_link_id = -1 Then
+        str_sql = "INSERT INTO " & Load.sources.employee_product_links_table _
+        & " (is_deleted, uw_id__underwriters_t)" _
+        & " VALUES(0, " & Me!uw_id & ")"
+        Load.conn.Execute str_sql
+        
+        str_sql = "SELECT employee_product_link_id" _
+        & " FROM " & Load.sources.employee_product_links_table _
+        & " WHERE is_deleted = 0 AND uw_id__underwriters_t = " & Me!uw_id _
+        & " ORDER BY employee_product_link_id DESC LIMIT 1"
+        
+        Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+            employee_product_link_id = rs!employee_product_link_id
+        rs.Close
+        Set rs = Nothing
+
+        new_product = True
+    End If
+    
+    open_forms.employee_products_f Me!uw_id, employee_product_link_id, new_product
+    
+    user_management.populate_uws_product employee_product_link_id, new_product
 outro:
     utilities.call_stack_remove_last_item True
     Exit Sub
@@ -201,7 +290,7 @@ Private Sub header_chooser_year_AfterUpdate()
     If Load.is_debugging = True Then On Error GoTo 0
     
     Load.check_conn_and_variables
-    
+    user_management.init
     user_management.refresh_uws_f
 outro:
     utilities.call_stack_remove_last_item True
@@ -549,22 +638,16 @@ err_handler:
     Resume outro
 End Sub
 
-Private Sub header_cmd_switch_source_Click()
-    Const proc_name As String = "uws_f.header_cmd_switch_source.Click"
+
+Private Sub header_filter_employee_name_AfterUpdate()
+    Const proc_name As String = "uws_f.header_filter_employee_name.AfterUpdate"
     utilities.call_stack_add_item proc_name
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
     
     Load.check_conn_and_variables
-    
-    If user_management.current_source = "" Or user_management.current_source = Load.sources.uw_roles_view Then
-        fix_rs.uws_f " AND employed = 93", Load.sources.underwriters_view
-        user_management.current_source = Load.sources.underwriters_view
-    Else
-        fix_rs.uws_f "", Load.sources.uw_roles_view
-        user_management.current_source = Load.sources.uw_roles_view
-    End If
-    
+    user_management.init
+    user_management.refresh_uws_f
 outro:
     utilities.call_stack_remove_last_item True
     Exit Sub
@@ -572,6 +655,3 @@ err_handler:
     Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
     Resume outro
 End Sub
-
-
-

@@ -1,0 +1,94 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Form_employee_products_f"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Private Sub cmd_add_Click()
+     Const proc_name As String = "employee_products_f.cmd_add.click"
+     utilities.call_stack_add_item proc_name
+     On Error GoTo err_handler
+     If Load.is_debugging = True Then On Error GoTo 0
+     
+     Dim employee_product_link_id As Long
+     Dim end_date As String
+     Dim product_allocation As Double
+     Dim start_date As String
+     Dim stop_proc As Boolean
+     Dim str_sql As String
+     Dim uw_id As Long
+     
+     Load.check_conn_and_variables
+     stop_proc = False
+     
+     If IsNull(Me!employee_product_start_date) = True Or Me!employee_product_start_date = "" Then
+        stop_proc = True
+        MsgBox "no start date provided.", , "start date missing"
+     End If
+     
+     If IsNull(Me!employee_product_id__employee_products_t) = True Or Me!employee_product_id__employee_products_t = "" Then
+        stop_proc = True
+        MsgBox "no product provided.", , "product missing"
+     End If
+     
+     If IsNull(Me!uw_id__underwriters_t) = True Or Me!uw_id__underwriters_t = "" Then
+        stop_proc = True
+        MsgBox "could not find underwriter. talk to tr it.", , "cannot find underwriter"
+     End If
+     
+     If stop_proc = True Then
+        GoTo outro
+     End If
+     
+     uw_id = Me!uw_id__underwriters_t
+     employee_product_link_id = Me!employee_product_link_id
+     start_date = utilities.generate_sql_date(Me!employee_product_start_date)
+     
+     end_date = "NULL"
+     If IsNull(Me!employee_product_end_date) = False Then
+        If Me!employee_product_end_date <> "" Then
+            end_date = "'" & utilities.generate_sql_date(Me!employee_product_end_date) & "'"
+        End If
+     End If
+     
+    product_allocation = 1
+    If IsNull(Me!product_allocation) = False Then
+        If Me!product_allocation <> "" Then
+            product_allocation = CDbl(Me!product_allocation)
+        End If
+     End If
+     
+     str_sql = "UPDATE " & Load.sources.employee_product_links_table _
+     & " SET" _
+     & " employee_product_id__employee_products_t = " & Me!employee_product_id__employee_products_t _
+     & ", employee_product_start_date = '" & start_date & "'" _
+     & ", employee_product_end_date = " & end_date _
+     & ", product_allocation = " & Replace(CStr(product_allocation), ",", ".") _
+     & " WHERE uw_id__underwriters_t = " & uw_id _
+     & " AND employee_product_link_id = " & employee_product_link_id
+     
+     Load.conn.Execute str_sql
+     fix_rs.uws_f_refresh
+outro:
+    utilities.call_stack_remove_last_item True
+    DoCmd.Close acForm, Me.name
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "str_sql = " & str_sql, "", "", True
+    Resume outro
+End Sub
+
+Private Sub employee_product_id__employee_products_t_AfterUpdate()
+ Me!employee_product_id__employee_products_t.BackColor = Load.colors.white
+End Sub
+
+Private Sub employee_product_start_date_AfterUpdate()
+ Me!employee_product_start_date.BackColor = Load.colors.white
+End Sub
+

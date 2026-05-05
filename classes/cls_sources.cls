@@ -54,8 +54,11 @@ Public deals_view As String
 Public duplicate_check_view As String
 Public dupliacte_deals_view As String
 
+Public employee_products_table As String
+Public employee_product_links_table As String
 Public employee_role_links_table As String
 Public employee_roles_table As String
+Public employees_global_view As String
 Public entities_table As String
 Public extra_deal_limit_table As String
 Public extra_deal_limit_view As String
@@ -138,9 +141,14 @@ Public Sub init()
     utilities.call_stack_add_item proc_name
     
     With Me
+        'americas
+        .log_errors_us_t = "stella_us.log_errors_t"
         
-        .add_many_deals_f = "recent_deals_v"
-        .approval_rights_view = "approval_rights_v"
+        'international
+        .log_errors_eur_t = "stella_eur.log_errors_t"
+        
+        'stella_common
+        .approval_rights_view = "stella_common.approval_rights_v"
         .awac_excels_table = "stella_common.awac_excels_t"
         .awac_excels_view = "stella_common.awac_excels_v"
         
@@ -155,48 +163,23 @@ Public Sub init()
         .binder_risk_types_view = "stella_common.cm_binder_risk_types_v"
         .brands_table = "stella_common.brands_t"
         .brands_view = "stella_common.brands_v"
-        .broker_firms_table = "broker_firms_t"
-        .broker_firms_view = "broker_firms_v"
-        .broker_persons_table = "broker_persons_t"
-        .broker_persons_view = "broker_persons_v"
         .budget_homes_view = "stella_common.budget_homes_v"
         
-        .cm_binder_questions_with_bad_sectors_view = "cm_binder_questions_with_bad_sectors_v"
-        .cm_country_procedures_deals_table = "cm_country_procedures_deals_t"
-        .cm_country_procedures_deals_view = "cm_country_procedures_deals_v"
         .cm_country_procedures_templates_table = "stella_common.cm_country_procedures_templates_t"
         .cm_country_procedures_templates_view = "stella_common.cm_country_procedures_templates_v"
         .cm_country_procedures_statuses_table = "stella_common.cm_country_procedures_statuses_t"
-        .cm_key_data_table = "cm_deals_t"
-        .cm_policies_table = "cm_policies_t"
-            
-        .claims_table = "stella_eur.claims_t"
         .currencies_table = "stella_common.currencies_t"
         
-        .data_fields_table = "data_fields_t"
-        .deal_parties_table = "deal_parties_t"
-        .deal_parties_view = "deal_parties_v"
-        .deal_questions_table = "cm_deal_questions_t"
-        .deal_questions_view = "cm_deal_questions_v"
         .deal_roles_table = "stella_common.deal_roles_t"
         .deal_statuses_view = "stella_common.deal_statuses_v"
-        .deal_tags_table = "deal_tags_t"
-        .deals_for_auto_archiving_view = "deals_for_auto_archiving_v"
-        .deals_table = "deals_t"
-        .deals_view = "deals_v"
-        .dupliacte_deals_view = "duplicate_deals_v"
-        .duplicate_check_view = "deals_for_duplicate_check_v"
         
+        .employee_products_table = "stella_common.employee_products_t"
+        .employee_product_links_table = "stella_common.employee_product_links_t"
         .employee_role_links_table = "stella_common.employee_role_links_t"
         .employee_roles_table = "stella_common.employee_roles_t"
+        .employees_global_view = "stella_common.employees_global_v"
         .entities_table = "stella_common.entities_t"
-        .extra_deal_limit_table = "stella_us.cm_extra_deal_limit_t"
-        .extra_deal_limit_view = "stella_us.cm_extra_deal_limit_v"
         
-        .financial_advisors_table = "financial_advisors_t"
-        .financial_advisors_view = "financial_advisors_v"
-        .folder_moving_table = "folder_moving_t"
-    
         .global_deal_list_view = "stella_common.global_deal_list_v"
         .global_policy_list_view = "stella_common.global_policy_list_v"
         
@@ -206,6 +189,65 @@ Public Sub init()
         .jurisdictions_table = "stella_common.jurisdictions_t"
         .jurisdictions_view = "stella_common.jurisdictions_v"
         
+        .log_errors_v = "stella_common.log_errors_v"
+        
+        .menu_list_table = "stella_common.menu_list_t"
+        
+        .navins_homes_table = "stella_common.navins_homes_t"
+        
+        .risk_types_table = "stella_common.risk_types_t"
+        .rp_entity_info_view = "stella_common.rp_entity_info_v"
+        
+        .sectors_table = "stella_common.sectors_t"
+        .sectors_view = "stella_common.sectors_v"
+        .service_messages_table = "stella_common.service_messages_t"
+        .service_messages_view = "stella_common.service_messages_v"
+        
+        .template_deal_tags_table = "stella_common.template_deal_tags_t"
+        .template_qs_table = "stella_common.cm_template_questions_t"
+        .template_qs_view = "stella_common.cm_template_questions_v"
+        
+        .underwriters_table = "stella_common.underwriters_t"
+        .underwriters_view = "stella_common.underwriters_v"
+        
+        .uw_role_fte_by_year_view = "stella_common.uw_role_fte_by_year_v"
+        .uw_roles_view = "stella_common.uw_all_roles_v"
+        
+        'logical
+        .add_many_deals_f = "recent_deals_v"
+        
+        .broker_firms_table = "broker_firms_t"
+        .broker_firms_view = "broker_firms_v"
+        .broker_persons_table = "broker_persons_t"
+        .broker_persons_view = "broker_persons_v"
+        
+        .cm_binder_questions_with_bad_sectors_view = "cm_binder_questions_with_bad_sectors_v"
+        .cm_country_procedures_deals_table = "cm_country_procedures_deals_t"
+        .cm_country_procedures_deals_view = "cm_country_procedures_deals_v"
+        .cm_key_data_table = "cm_deals_t"
+        .cm_policies_table = "cm_policies_t"
+            
+        .claims_table = "claims_t"
+        
+        .data_fields_table = "data_fields_t"
+        .deal_parties_table = "deal_parties_t"
+        .deal_parties_view = "deal_parties_v"
+        .deal_questions_table = "cm_deal_questions_t"
+        .deal_questions_view = "cm_deal_questions_v"
+        .deal_tags_table = "deal_tags_t"
+        .deals_for_auto_archiving_view = "deals_for_auto_archiving_v"
+        .deals_table = "deals_t"
+        .deals_view = "deals_v"
+        .dupliacte_deals_view = "duplicate_deals_v"
+        .duplicate_check_view = "deals_for_duplicate_check_v"
+        
+        .extra_deal_limit_table = "cm_extra_deal_limit_t"
+        .extra_deal_limit_view = "cm_extra_deal_limit_v"
+        
+        .financial_advisors_table = "financial_advisors_t"
+        .financial_advisors_view = "financial_advisors_v"
+        .folder_moving_table = "folder_moving_t"
+        
         .law_firms_table = "law_firms_t"
         .law_firms_view = "law_firms_v"
         .lawyers_table = "lawyers_t"
@@ -213,15 +255,9 @@ Public Sub init()
         .live_deals_view = "live_deals_v"
         .log_activity_table = "log_activity_t"
         .log_data_table = "log_data_t"
-        .log_errors_eur_t = "stella_eur.log_errors_t"
-        .log_errors_us_t = "stella_us.log_errors_t"
-        .log_errors_v = "stella_common.log_errors_v"
         
         .master_deal_list_view = "master_deal_list_v"
-        .menu_list_table = "stella_common.menu_list_t"
         .my_deals_view = "my_deals_v"
-        
-        .navins_homes_table = "stella_common.navins_homes_t"
         
         .parties_table = "parties_t"
         .policy_binders_table = "security_t"
@@ -235,25 +271,11 @@ Public Sub init()
         .referrals_table = "cm_referrals_t"
         .referrals_view = "cm_referrals_v"
         .risk_details_f_view = "risk_details_f_v"
-        .risk_types_table = "stella_common.risk_types_t"
-        .rp_entity_info_view = "stella_common.rp_entity_info_v"
         
-        .sectors_table = "stella_common.sectors_t"
-        .sectors_view = "stella_common.sectors_v"
-        .service_messages_table = "stella_common.service_messages_t"
-        .service_messages_view = "stella_common.service_messages_v"
         .submission_control_view = "sub_control_v"
         
-        .template_deal_tags_table = "stella_common.template_deal_tags_t"
-        .template_qs_table = "stella_common.cm_template_questions_t"
-        .template_qs_view = "stella_common.cm_template_questions_v"
-        
-        .underwriters_table = "stella_common.underwriters_t"
-        .underwriters_view = "stella_common.underwriters_v"
         .uw_financial_persons_view = "uw_financial_persons_v"
         .uw_positions_view = "cm_uw_positions_v"
-        .uw_role_fte_by_year_view = "stella_common.uw_role_fte_by_year_v"
-        .uw_roles_view = "stella_common.uw_all_roles_v"
         
         .weekly_view_f = "weekly_view_v"
         

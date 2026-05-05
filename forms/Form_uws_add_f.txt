@@ -27,6 +27,7 @@ Private Sub cmd_add_Click()
     Dim form_field As cls_field
     Dim new_user As Boolean
     Dim rs As ADODB.Recordset
+    Dim sql_end_date As String
     Dim stop_proc As Boolean
     Dim str_sql As String
     Dim str_user_name As String
@@ -59,7 +60,7 @@ Private Sub cmd_add_Click()
     End If
     
     'Check that new_uw_initials has exactly 5 letters
-    If Len(Me!uw_initials) <> 5 Then
+    If Len(Me!uw_initials) <> 5 And Len(Me!uw_initials) <> 6 Then
         Me!uw_initials.BackColor = Load.colors.yellow
         GoTo outro
     End If

@@ -451,7 +451,7 @@ Public Sub uws_f(ByVal str_condition As String, _
         GoTo outro
     End If
     
-    str_sql = "SELECT * from " & str_source & " WHERE 1 " & str_condition & " ORDER BY uw_name ASC, employee_role_start_date DESC"
+    str_sql = "SELECT * FROM " & str_source & " WHERE 1 " & str_condition & " ORDER BY uw_name ASC, employee_role_start_date DESC"
     Set rs = utilities.create_adodb_rs(conn, str_sql)
         Set Forms(str_form).Recordset = rs
     rs.Close

@@ -1,6 +1,12 @@
 Option Compare Database
 Option Explicit
 
+Public Sub test_CoPilot_coding()
+
+Application.LoadFromText acForm, "employee_products_f", "D:\RiskPoint\stella\stella_admin_dev\forms_full\employee_products_f.txt"
+
+End Sub
+
 Public Sub load_module_speed_test()
     Const test_count As Long = 10
     

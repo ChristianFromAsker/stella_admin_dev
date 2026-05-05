@@ -80,6 +80,13 @@ Public Sub import_resource()
     dct_resource.Add "resource_ending", "cls"
     col_resources.Add dct_resource
     
+    Set dct_resource = New Scripting.Dictionary
+    dct_resource.Add "resource_name", "cls_sources__menu_lists"
+    dct_resource.Add "resource_path", "D:\riskpoint\stella\stella_uw_dev\classes\" & dct_resource("resource_name")
+    dct_resource.Add "resource_type", acModule
+    dct_resource.Add "resource_ending", "cls"
+    col_resources.Add dct_resource
+    
     
     For Each dct_resource In col_resources
         Application.LoadFromText dct_resource("resource_type"), dct_resource("resource_name"), dct_resource("resource_path") & "." & dct_resource("resource_ending")

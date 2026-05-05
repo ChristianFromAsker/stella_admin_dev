@@ -105,6 +105,7 @@ Public Sub init()
         .common_path_us = .stella_path_us & "common\"
         .individual_path_us = .stella_path_us & "published\individual\"
         .published_us = .stella_path_us & "published\"
+        .stable_builds_us = .stella_path_us & "stable_builds\"
         .placeholder_path_published_us = .published_us & "placeholders\"
         
         'logical

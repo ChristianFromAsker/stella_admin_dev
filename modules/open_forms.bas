@@ -1,6 +1,96 @@
 Option Compare Database
 Option Explicit
 
+Public Sub employee_products_f( _
+    ByVal uw_id As Long _
+    , Optional ByVal employee_product_link_id As Long _
+    , Optional ByVal new_product As Boolean _
+)
+    Const proc_name As String = "open_forms.employee_products_f"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+
+    Dim str_form As String
+    Dim str_sql As String
+    Dim rs As ADODB.Recordset
+
+    str_form = "employee_products_f"
+
+    If CurrentProject.AllForms(str_form).IsLoaded = False Then
+        DoCmd.OpenForm str_form
+        DoCmd.MoveSize Right:=300, Down:=300, Width:=7500, Height:=5000
+    End If
+
+    With Forms(str_form)
+        .Caption = "add or change product"
+
+        'clear fields
+        !employee_product_link_id = Null
+        !employee_product_id__employee_products_t = Null
+        !employee_product_start_date = Null
+        !employee_product_end_date = Null
+        !product_allocation = Null
+        !uw_id__underwriters_t = uw_id
+        !uw_name = Null
+    End With
+
+    'load uw name
+    str_sql = _
+        "SELECT uw_name " & _
+        "FROM " & Load.sources.underwriters_view & " " & _
+        "WHERE uw_id = " & uw_id
+
+    Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+    If rs.EOF = False Then
+        Forms(str_form)!uw_name = rs!uw_name
+    End If
+    rs.Close
+    Set rs = Nothing
+
+    'populate product dropdown
+    Forms(str_form).Controls("employee_product_id__employee_products_t").RowSource = Load.sources.menu_lists.row_source_employee_products
+
+    'populate existing product link if relevant
+    If employee_product_link_id <> 0 Then
+
+        str_sql = _
+        "SELECT employee_product_link_id" & _
+        ", employee_product_id__employee_products_t" & _
+        ", employee_product_start_date" & _
+        ", employee_product_end_date" & _
+        ", product_allocation " & _
+        "FROM " & Load.sources.employee_product_links_table & " " & _
+        "WHERE employee_product_link_id = " & employee_product_link_id
+
+        Set rs = utilities.create_adodb_rs(Load.conn, str_sql)
+        With rs
+            If .EOF = False Then
+                With Forms(str_form)
+                    !employee_product_link_id = !employee_product_link_id
+                    If new_product = False Then
+                        !employee_product_id__employee_products_t = !employee_product_id__employee_products_t
+                        !employee_product_start_date = !employee_product_start_date
+                        !employee_product_end_date = !employee_product_end_date
+                        !product_allocation = !product_allocation
+                    End If
+                End With
+            End If
+        End With
+        rs.Close
+        Set rs = Nothing
+
+    End If
+
+outro:
+    utilities.call_stack_remove_last_item
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "str_sql = " & str_sql, "", "", True
+    Resume outro
+End Sub
+
+
 Public Sub deal_log()
     Const proc_name As String = "open_forms.deal_log"
     utilities.call_stack_add_item proc_name
@@ -745,14 +835,13 @@ err_handler:
     GoTo outro
 End Sub
 Public Sub broker_firms_f()
-    Dim proc_name As String
-    proc_name = "open_forms.broker_firms_f"
-    Load.call_stack = Load.call_stack & vbNewLine & proc_name
+    Const proc_name As String = "open_forms.broker_firms_f"
+    utilities.call_stack_add_item proc_name
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
     
-    Dim str_form As String
-    str_form = "broker_firms_f"
+    Const str_form As String = "broker_firms_f"
+    
     If CurrentProject.AllForms(str_form).IsLoaded = False Then DoCmd.OpenForm str_form
     fix_rs.broker_firms_f
     
@@ -761,53 +850,20 @@ Public Sub broker_firms_f()
         .SetFocus
         DoCmd.MoveSize Right:=300, Down:=300, Width:=13700, Height:=10000
         !new_broker_firm_id = ""
-        Dim control_count As Integer
-        Dim arr_controls() As Variant
-        ReDim arr_controls(0 To 50, 0 To 1)
         
-        control_count = 1
-        arr_controls(control_count, 0) = "new_jurisdiction_id"
-        arr_controls(control_count, 1) = Load.sources.menu_lists.country_list
+        .Controls("new_jurisdiction_id").RowSource = Load.sources.menu_lists.row_source_jurisdictions
         
-        'remove old values
-        Dim i As Integer
-        For i = 1 To control_count
-            Do While .Controls(arr_controls(i, 0)).ListCount > 0
-                .Controls(arr_controls(i, 0)).RemoveItem (0)
-            Loop
-        Next i
-        
-        'add new values
-        Dim str_sql As String
-        Dim rs As ADODB.Recordset
-        For i = 1 To control_count
-            str_sql = arr_controls(i, 1)
-            Set rs = utilities.create_adodb_rs(conn, str_sql)
-            Do While rs.EOF = False
-                If rs!menu_item <> "_all" Then
-                    .Controls(arr_controls(i, 0)).AddItem rs!id & ";" & rs!menu_item
-                End If
-                rs.MoveNext
-            Loop
-            rs.Close
-        Next i
-        Set rs = Nothing
     End With
 
 outro:
-    If Not rs Is Nothing Then
-        If rs.State = 1 Then rs.Close
-        Set rs = Nothing
-    End If
     Exit Sub
-
 err_handler:
     Dim err_object As cls_err_object
     Set err_object = New cls_err_object
     With err_object
         .routine_name = "open_forms.broker_firms_f"
         .milestone = ""
-        .params = "str_sql = " & str_sql
+        .params = ""
         .system_error_code = Err.Number
         .system_error_text = Err.Description
         .show_error_msg = True
@@ -988,16 +1044,14 @@ Public Sub uws_add_f()
     
     With Forms(str_form)
         .Controls(user_management.uw_data_controls.budget_home_id.field_name).RowSource = Load.sources.menu_lists.row_source_budget_homes
+        .Controls("employee_product_id").RowSource = Load.sources.menu_lists.row_source_employee_products
+        .Controls("employee_role_id").RowSource = Load.sources.menu_lists.row_source_employee_roles
         
         ReDim arr_controls(0 To 100, 0 To 1)
         
         i = 1
         arr_controls(i, 0) = "usertype_id"
         arr_controls(i, 1) = "SELECT menu_id id, menu_item FROM " & Load.sources.menu_list_table & " WHERE item_type = 'UserType'"
-        
-        i = i + 1
-        arr_controls(i, 0) = "employee_role_id"
-        arr_controls(i, 1) = Load.sources.menu_lists.employee_roles
         
         arr_controls(0, 0) = i
         
@@ -1060,7 +1114,7 @@ Public Sub uws_f()
         .Controls(user_management.header_controls.header_chooser_year.field_name).Value = 0
     End With
     
-    fix_rs.uws_f " AND (user_type_id = 150 OR user_type_id = 149)", Load.sources.uw_roles_view
+    fix_rs.uws_f " AND (user_type_id = 150 OR user_type_id = 149)", Load.sources.employees_global_view
     user_management.uw_statistics " AND (user_type_id = 150 OR user_type_id = 149)"
     
     For Each fld In user_management.col_filter_controls

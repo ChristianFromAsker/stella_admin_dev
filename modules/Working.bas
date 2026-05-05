@@ -1,12 +1,15 @@
 Option Compare Database
 Option Explicit
+
 Public conn_err_counter As Long
 Public Const strBasePathWorking As String = "F:\R i s k P o i n t\Denmark\35 M&A\M&A - Working\"
 Public Const strBasePathBound As String = "F:\R i s k P o i n t\Denmark\35 M&A\M&A - Bound\"
 Public Const strBasePathNonBound As String = "F:\R i s k P o i n t\Denmark\35 M&A\M&A - Non-Bound\"
 Public Const strLogPath As String = "F:\R i s k P o i n t\Norway\35 M&A - Norway\Intranet\DataBase\Logs\"
+
 Public folder_check_shall_stop As Boolean
 Public moved_folder_counter As Long
+Public timer_start As Single
 
 Public Sub entry()
     Const proc_name As String = "working.StartFolderCheckGeneral"
@@ -16,6 +19,8 @@ Public Sub entry()
     
     MsgBox "Hi! " & vbNewLine & vbNewLine & "I, Stella, will now look through our shared drive and backup relevant folders and files. This will take a while. Please leave me alone until I'm done. It'll look like I'm not responsive or have 'frozen', but actually I'm just busy working." _
     & "When I'm done you'll see a log which shows all the hard work I've done." & vbNewLine & vbNewLine & "Best regards, " & vbNewLine & "Stella", vbInformation, "I'll be working for a while now."
+    
+    Working.timer_start = Timer
     
     open_forms.working_on_it_f "Working on it!"
     Working.folder_check_shall_stop = False
@@ -27,7 +32,7 @@ Public Sub entry()
     FollowHyperlink Load.system_info.system_paths.log_for_folder_moving
     DoCmd.Close acForm, "working_on_it_f"
 outro:
-    utilities.call_stack_remove_last_item
+    utilities.call_stack_remove_last_item False
     Exit Sub
 err_handler:
     Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
@@ -78,10 +83,14 @@ Public Sub folder_check(ByVal Path As Object)
     Dim path_normative_compare As String
     
     For Each objFolder In Path.SubFolders
-        ' Need the ID to include all figures, hence string and not integer
-        strID = Right(objFolder, 6)
-        ' Some teams have folders which are not deals. Hopefully these don't end with four figures :)
-        If IsNumeric(Right(strID, 4)) = False Then
+        If Timer - timer_start > 300 Then
+            Working.folder_check_shall_stop = True
+            Working.WriteText vbNewLine & Now() & " Stopped moving folders as the max time limit was reached."
+            Exit For
+        End If
+        
+        strID = Right(objFolder, 6) ' Need the ID to include all figures, hence string and not integer
+        If IsNumeric(Right(strID, 4)) = False Then ' Some teams have folders which are not deals. Hopefully these don't end with four figures :)
             GoTo NextIteration
         End If
         ' Somestimes a record is deleted from Stella but the folder is not. Therefore, need to verify that dealID is in Stella.
@@ -106,7 +115,8 @@ Public Sub folder_check(ByVal Path As Object)
         
         If path_normative_compare <> path_actual_compare Then
             ' Logs the changes in case they need to be reversed or reviewed.
-            WriteText vbNewLine & Now() & " Attempting to move from " & objFolder.Path & " to " & vbNewLine & path_normative
+            Working.WriteText vbNewLine & Now() & " Attempting to move from " & objFolder.Path & " to " & vbNewLine & path_normative
+            
             ' Check whether there is a folder at the destination already. If yes, there is duplicate deal folders and human intervenation is needed.
             If Dir(path_normative, vbDirectory) = "" Then
                 If Working.moved_folder_counter > 50 Then
@@ -194,23 +204,26 @@ Public Sub entry__non_bound()
     If Load.is_debugging = True Then On Error GoTo 0
     
     ' This set of modules loop thorugh all files in the bound folder and backs them up if not backed up already.
+    Dim col_years As Collection
     Dim strYear As String
     Dim i As Long
     Dim y As Long
     Dim objWorking As Object
     Dim objFolder As Object
+    Dim var_year As Variant
     ' The system is made up of two routines; this ones, which fires it, and the next one, which does the actual looping of folders.
     ' Logs the start of the procedure to a log.txt file. WriteText is a Function.
     
     ' Logs what happens.
     WriteText vbNewLine & " - - - " & Now() & " - Folder check for non-bound folders started."
-    y = Year(Date) - 2
-    If y < 2020 Then
-        y = 2020
-    End If
-    For i = y To Year(Date)
+    Set col_years = New Collection
+    col_years.Add Year(Date)
+    col_years.Add Year(Date) - 1
+    col_years.Add Year(Date) - 2
+    
+    For Each var_year In col_years
         Set objWorking = CreateObject("Scripting.FileSystemObject")
-            For Each objFolder In objWorking.getfolder(strBasePathNonBound & i & "/").SubFolders
+            For Each objFolder In objWorking.getfolder(strBasePathNonBound & var_year & "/").SubFolders
                 If folder_check_shall_stop = True Then
                     WriteText Now() & " - folder_check_shall_stop = True."
                     GoTo outro
@@ -218,7 +231,7 @@ Public Sub entry__non_bound()
                 Working.folder_check objFolder
             Next objFolder
         Set objWorking = Nothing
-    Next i
+    Next var_year
     WriteText Now() & " - Folder check for non-bound folders is completed." & vbNewLine & "_ _ _ " & vbNewLine & vbNewLine
 
 outro:

@@ -982,3 +982,191 @@ Public Function convert_number_to_figure(ByVal input_number As Long) As String
     If input_number = 41 Then convert_number_to_figure = "ao"
     If input_number = 42 Then convert_number_to_figure = "ap"
 End Function
+Public Function collapse_spaces(ByVal s As String) As String
+    Dim i As Long
+    s = Trim$(s)
+    Do While InStr(s, "  ") > 0
+        s = Replace(s, "  ", " ")
+    Loop
+    collapse_spaces = s
+End Function
+Public Function split_sql(ByVal sql As String) As Variant
+    Const proc_name As String = "utilities.split_sql_statement"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+
+    Dim a(1 To 3) As String
+    Dim cut1 As Long
+    Dim cut2 As Long
+    Dim posOrder As Long
+    Dim posWhere As Long
+    Dim s As String
+    
+    s = utilities.split_sql__normalise(sql)
+
+    posWhere = utilities.split_sql__top_level_keyword(s, "WHERE")
+    posOrder = utilities.split_sql__top_level_order_by(s)
+
+    If posWhere = 0 And posOrder = 0 Then
+        a(1) = Trim$(s)
+        a(2) = ""
+        a(3) = ""
+    ElseIf posWhere > 0 And (posOrder = 0 Or posWhere < posOrder) Then
+        a(1) = Trim$(Left$(s, posWhere - 1))
+        If posOrder > 0 Then
+            a(2) = Trim$(Mid$(s, posWhere, posOrder - posWhere))
+            a(3) = Trim$(Mid$(s, posOrder))
+        Else
+            a(2) = Trim$(Mid$(s, posWhere))
+            a(3) = ""
+        End If
+    Else
+        ' ORDER BY appears before WHERE (rare but possible in malformed SQL) or no WHERE
+        a(1) = Trim$(Left$(s, posOrder - 1))
+        a(2) = ""
+        a(3) = Trim$(Mid$(s, posOrder))
+    End If
+
+    split_sql = a
+outro:
+    utilities.call_stack_remove_last_item False
+    Exit Function
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Function
+Public Function split_sql__normalise(ByVal sql As String) As String
+    Dim s As String
+    s = Replace(sql, "&gt;", ">")
+    s = Replace(s, "&lt;", "<")
+    s = Replace(s, vbCrLf, " ")
+    s = Replace(s, vbCr, " ")
+    s = Replace(s, vbLf, " ")
+    split_sql__normalise = utilities.collapse_spaces(s)
+End Function
+Public Function split_sql__top_level_keyword(ByVal s As String, ByVal kw As String) As Long
+    split_sql__top_level_keyword = utilities.split_sql__token_top_level(s, kw)
+End Function
+Public Function split_sql__top_level_order_by(ByVal s As String) As Long
+    ' ORDER BY is a two-token clause; detect top-level "ORDER" followed by "BY".
+    Dim posOrder As Long
+    posOrder = utilities.split_sql__token_top_level(s, "ORDER")
+    If posOrder = 0 Then Exit Function
+
+    ' Verify that "BY" follows after optional whitespace/comments at same top-level
+    Dim posAfterOrder As Long
+    posAfterOrder = posOrder + Len("ORDER")
+    If utilities.split_sql__top_level_order_by__next_token_is(s, posAfterOrder, "BY") Then
+        split_sql__top_level_order_by = posOrder
+    Else
+        split_sql__top_level_order_by = 0
+    End If
+End Function
+Public Function split_sql__token_top_level(ByVal s As String, ByVal token As String) As Long
+    
+    Dim ch As String
+    Dim depth As Long
+    Dim i As Long
+    Dim n As Long
+    Dim inSQ As Boolean
+    Dim inDQ As Boolean
+    Dim inLineComment As Boolean
+    Dim inBlockComment As Boolean
+    Dim uToken As String
+    
+    n = Len(s)
+    uToken = UCase$(token)
+
+    i = 1
+    Do While i <= n
+        
+        ch = Mid$(s, i, 1)
+
+        ' Toggle quotes (MySQL: '' escapes single quote by doubling)
+        If Not inDQ And ch = "'" Then
+            If inSQ Then
+                If i < n And Mid$(s, i + 1, 1) = "'" Then
+                    ' Escaped single quote
+                    i = i + 2
+                    GoTo ContinueLoop
+                Else
+                    inSQ = False
+                End If
+            Else
+                inSQ = True
+            End If
+            i = i + 1
+            GoTo ContinueLoop
+        ElseIf Not inSQ And ch = """" Then
+            inDQ = Not inDQ
+            i = i + 1
+            GoTo ContinueLoop
+        End If
+
+        ' Track parentheses depth (ignore inside quotes)
+        If Not inSQ And Not inDQ Then
+            If ch = "(" Then depth = depth + 1
+            If ch = ")" Then If depth > 0 Then depth = depth - 1
+        End If
+
+        ' Try match token only at top-level and not in quotes/comments
+        If depth = 0 And Not inSQ And Not inDQ Then
+            If split_sql__token_match_at(s, i, uToken) Then
+                split_sql__token_top_level = i
+                Exit Function
+            End If
+        End If
+
+        i = i + 1
+ContinueLoop:
+    Loop
+
+    split_sql__token_top_level = 0
+End Function
+
+' Check token boundaries: previous and next chars must not be letter/digit/underscore.
+Public Function split_sql__token_match_at(ByVal s As String, ByVal pos As Long, ByVal uToken As String) As Boolean
+    Dim n As Long
+    Dim l As Long
+    Dim prev As String
+    Dim nxt As String
+    
+    n = Len(s)
+    l = Len(uToken)
+    
+    If pos + l - 1 > n Then Exit Function
+
+    If UCase$(Mid$(s, pos, l)) <> uToken Then Exit Function
+
+    prev = IIf(pos > 1, Mid$(s, pos - 1, 1), " ")
+    nxt = IIf(pos + l <= n, Mid$(s, pos + l, 1), " ")
+
+    If utilities.split_sql__token_match_at__is_ident_char(prev) Then Exit Function
+    If utilities.split_sql__token_match_at__is_ident_char(nxt) Then Exit Function
+
+    split_sql__token_match_at = True
+End Function
+Public Function split_sql__token_match_at__is_ident_char(ByVal ch As String) As Boolean
+    Dim c As Integer
+    If Len(ch) = 0 Then Exit Function
+    c = AscW(ch)
+    split_sql__token_match_at__is_ident_char = (c >= 48 And c <= 57) Or (c >= 65 And c <= 90) Or (c >= 97 And c <= 122) Or (ch = "_")
+End Function
+Public Function split_sql__top_level_order_by__next_token_is(ByVal s As String, _
+    ByVal startPos As Long, _
+    ByVal expected As String _
+) As Boolean
+    Dim i As Long
+    Dim n As Long
+    
+    n = Len(s)
+    i = startPos
+
+    ' Simple skip spaces
+    Do While i <= n And Mid$(s, i, 1) = " "
+        i = i + 1
+    Loop
+
+    split_sql__top_level_order_by__next_token_is = split_sql__token_match_at(s, i, UCase$(expected))
+End Function
