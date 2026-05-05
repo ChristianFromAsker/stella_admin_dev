@@ -1,12 +1,13 @@
 Option Compare Database
 Option Explicit
 
-Public conn_err_counter As Long
+Public Const max_folder_moves As Long = 50
 Public Const strBasePathWorking As String = "F:\R i s k P o i n t\Denmark\35 M&A\M&A - Working\"
 Public Const strBasePathBound As String = "F:\R i s k P o i n t\Denmark\35 M&A\M&A - Bound\"
 Public Const strBasePathNonBound As String = "F:\R i s k P o i n t\Denmark\35 M&A\M&A - Non-Bound\"
 Public Const strLogPath As String = "F:\R i s k P o i n t\Norway\35 M&A - Norway\Intranet\DataBase\Logs\"
 
+Public conn_err_counter As Long
 Public folder_check_shall_stop As Boolean
 Public moved_folder_counter As Long
 Public timer_start As Single
@@ -44,9 +45,6 @@ Public Sub entry__working()
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
     
-    ' This module loops thorugh all files in the working folder and backs them up if not backed up already.
-    ' The system is made up of two routines; this ones, which fires it, and the next one, which does the actual looping of folders.
-    ' Logs the start of the procedure to a log.txt file. WriteText is a Function.
     Dim objWorking As Object
     Dim objFolder As Object
     
@@ -54,7 +52,7 @@ Public Sub entry__working()
     Set objWorking = CreateObject("Scripting.FileSystemObject")
         For Each objFolder In objWorking.getfolder(strBasePathWorking).SubFolders
             If folder_check_shall_stop = True Then
-                WriteText Now() & " - folder_check_shall_stop = True."
+                Working.WriteText Now() & " - folder_check_shall_stop = True."
                 GoTo outro
             End If
             Working.folder_check objFolder
@@ -114,12 +112,12 @@ Public Sub folder_check(ByVal Path As Object)
         path_actual_compare = Split(objFolder, "R i s k P o i n t")(1)
         
         If path_normative_compare <> path_actual_compare Then
-            ' Logs the changes in case they need to be reversed or reviewed.
             Working.WriteText vbNewLine & Now() & " Attempting to move from " & objFolder.Path & " to " & vbNewLine & path_normative
             
             ' Check whether there is a folder at the destination already. If yes, there is duplicate deal folders and human intervenation is needed.
             If Dir(path_normative, vbDirectory) = "" Then
-                If Working.moved_folder_counter > 50 Then
+                If Working.moved_folder_counter > Working.max_folder_moves Then
+                    Working.WriteText vbNewLine & Now() & " Stopped moving folders as " & Working.max_folder_moves & " folders were moved."
                     Working.folder_check_shall_stop = True
                     Exit For
                 End If
@@ -167,15 +165,11 @@ Public Sub entry__bound()
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
     
-    ' This set of modules loop thorugh all files in the bound folder and backs them up if not backed up already.
     Dim strYear As String
     Dim i As Long
     Dim objWorking As Object
     Dim objFolder As Object
-    ' The system is made up of two routines; this ones, which fires it, and the next one, which does the actual looping of folders.
-    ' Logs the start of the procedure to a log.txt file. WriteText is a Function.
     
-    ' Logs what happens.
     WriteText vbNewLine & " - - - " & Now() & " - Folder check for bound folders started."
     For i = Year(Date) - 2 To Year(Date)
         Set objWorking = CreateObject("Scripting.FileSystemObject")
@@ -203,7 +197,6 @@ Public Sub entry__non_bound()
     On Error GoTo err_handler
     If Load.is_debugging = True Then On Error GoTo 0
     
-    ' This set of modules loop thorugh all files in the bound folder and backs them up if not backed up already.
     Dim col_years As Collection
     Dim strYear As String
     Dim i As Long
@@ -211,11 +204,8 @@ Public Sub entry__non_bound()
     Dim objWorking As Object
     Dim objFolder As Object
     Dim var_year As Variant
-    ' The system is made up of two routines; this ones, which fires it, and the next one, which does the actual looping of folders.
-    ' Logs the start of the procedure to a log.txt file. WriteText is a Function.
     
-    ' Logs what happens.
-    WriteText vbNewLine & " - - - " & Now() & " - Folder check for non-bound folders started."
+    Working.WriteText vbNewLine & " - - - " & Now() & " - Folder check for non-bound folders started."
     Set col_years = New Collection
     col_years.Add Year(Date)
     col_years.Add Year(Date) - 1
@@ -232,7 +222,7 @@ Public Sub entry__non_bound()
             Next objFolder
         Set objWorking = Nothing
     Next var_year
-    WriteText Now() & " - Folder check for non-bound folders is completed." & vbNewLine & "_ _ _ " & vbNewLine & vbNewLine
+    Working.WriteText Now() & " - Folder check for non-bound folders is completed." & vbNewLine & "_ _ _ " & vbNewLine & vbNewLine
 
 outro:
     utilities.call_stack_remove_last_item

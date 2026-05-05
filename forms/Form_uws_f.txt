@@ -272,14 +272,80 @@ Private Sub cmd_delete_Click()
         conn.Execute str_sql
         str_sql = "UPDATE " & Load.sources.employee_role_links_table & " SET is_deleted = 1 WHERE uw_id__underwriters_t = " & uw_id
         conn.Execute str_sql
-        MsgBox "Click refresh to update list.", , "View contains deleted UW"
+        str_sql = "UPDATE " & Load.sources.employee_product_links_table & " SET is_deleted = 1 WHERE uw_id__underwriters_t = " & uw_id
+        conn.Execute str_sql
     End If
     
 outro:
     utilities.call_stack_remove_last_item True
     Exit Sub
 err_handler:
-    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Central.err_handler proc_name, Err.Number, Err.Description, "str_sql = " & str_sql, "", "", True
+    Resume outro
+End Sub
+
+Private Sub cmd_delete_product_Click()
+    Const proc_name As String = "uws_f.cmd_delete_product.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim answer As Variant
+    Dim str_message As String
+    Dim str_sql As String
+    Dim uw_id As Long
+    Dim product_link_id As Long
+    
+    uw_id = Me!uw_id
+    product_link_id = Me!employee_product_link_id
+    str_message = "You are about to delete this product for " & Me!uw_name & ". Please confirm."
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        GoTo outro
+    Else
+        str_sql = "UPDATE " & Load.sources.employee_product_links_table & " SET is_deleted = 1 WHERE uw_id__underwriters_t = " & uw_id & " AND employee_product_link_id = " & product_link_id
+        conn.Execute str_sql
+    End If
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "str_sql = " & str_sql, "", "", True
+    Resume outro
+End Sub
+Private Sub cmd_delete_role_Click()
+    Const proc_name As String = "uws_f.cmd_delete_role.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    
+    Load.check_conn_and_variables
+    
+    Dim answer As Variant
+    Dim str_message As String
+    Dim str_sql As String
+    Dim uw_id As Long
+    Dim role_link_id As Long
+    
+    uw_id = Me!uw_id
+    role_link_id = Me!employee_role_link_id
+    str_message = "You are about to delete this role for " & Me!uw_name & ". Please confirm."
+    answer = MsgBox(str_message, vbQuestion + vbYesNo, "Confirm deletion.")
+    If answer = vbNo Then
+        GoTo outro
+    Else
+        str_sql = "UPDATE " & Load.sources.employee_role_links_table & " SET is_deleted = 1 WHERE uw_id__underwriters_t = " & uw_id & " AND employee_role_link_id =  " & role_link_id
+        conn.Execute str_sql
+    End If
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "str_sql = " & str_sql, "", "", True
     Resume outro
 End Sub
 
@@ -348,6 +414,7 @@ err_handler:
     Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
     Resume outro
 End Sub
+
 Private Sub header_cmd_4_Click()
     Const proc_name As String = "uws_f.header_cmd_4.Click"
     utilities.call_stack_add_item proc_name
@@ -637,7 +704,150 @@ err_handler:
     Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
     Resume outro
 End Sub
-
+Private Sub header_cmd_22_Click()
+    Const proc_name As String = "uws_f.header_cmd_22.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_22
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub header_cmd_23_Click()
+    Const proc_name As String = "uws_f.header_cmd_23.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_23
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub header_cmd_24_Click()
+    Const proc_name As String = "uws_f.header_cmd_24.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_24
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub header_cmd_25_Click()
+    Const proc_name As String = "uws_f.header_cmd_25.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_25
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub header_cmd_26_Click()
+    Const proc_name As String = "uws_f.header_cmd_26.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_26
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub header_cmd_27_Click()
+    Const proc_name As String = "uws_f.header_cmd_27.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_27
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub header_cmd_28_Click()
+    Const proc_name As String = "uws_f.header_cmd_28.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_28
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub header_cmd_29_Click()
+    Const proc_name As String = "uws_f.header_cmd_29.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_29
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
+Private Sub header_cmd_30_Click()
+    Const proc_name As String = "uws_f.header_cmd_30.Click"
+    utilities.call_stack_add_item proc_name
+    On Error GoTo err_handler
+    If Load.is_debugging = True Then On Error GoTo 0
+    Load.check_conn_and_variables
+    user_management.init
+    user_management.change_filter_role user_management.filter_controls.header_cmd_30
+    
+outro:
+    utilities.call_stack_remove_last_item True
+    Exit Sub
+err_handler:
+    Central.err_handler proc_name, Err.Number, Err.Description, "", "", "", True
+    Resume outro
+End Sub
 
 Private Sub header_filter_employee_name_AfterUpdate()
     Const proc_name As String = "uws_f.header_filter_employee_name.AfterUpdate"

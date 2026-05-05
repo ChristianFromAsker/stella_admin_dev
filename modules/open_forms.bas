@@ -1107,7 +1107,7 @@ Public Sub uws_f()
     str_form = "uws_f"
     If CurrentProject.AllForms(str_form).IsLoaded = False Then
         DoCmd.OpenForm str_form
-        DoCmd.MoveSize Right:=200, Down:=200, Width:=16500, Height:=16000
+        DoCmd.MoveSize Right:=200, Down:=200, Width:=21000, Height:=16000
     End If
     
     With Forms(str_form)

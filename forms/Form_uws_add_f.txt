@@ -29,6 +29,7 @@ Private Sub cmd_add_Click()
     Dim rs As ADODB.Recordset
     Dim sql_end_date As String
     Dim stop_proc As Boolean
+    Dim str_date_end As String
     Dim str_sql As String
     Dim str_user_name As String
     Dim uw_id As Long
@@ -92,6 +93,10 @@ Private Sub cmd_add_Click()
         End If
     End If
     
+    str_date_end = ""
+    If IsNull(Me!date_end) = False And Me!date_end <> "" Then
+        str_date_end = ", end_date = '" & utilities.generate_sql_date(Me!date_end) & "'"
+    End If
     'Add data to record
     With user_management.uw_data_controls
         str_sql = "UPDATE " & Load.sources.underwriters_table & " SET " _
@@ -99,6 +104,7 @@ Private Sub cmd_add_Click()
         & ", uw_name = '" & Me.Controls(.uw_name.field_name) & "'" & vbNewLine _
         & ", is_employed_id = " & Me.Controls(.is_employed_id.field_name) & vbNewLine _
         & ", start_date = '" & utilities.generate_sql_date(Me.Controls(.date_start.field_name)) & "'" & vbNewLine _
+        & str_date_end _
         & ", nickname = '" & Me.Controls(.nickname.field_name) & "'" & vbNewLine _
         & ", user_type_id = " & Me.Controls(.usertype.field_name) _
         & ", user_name = '" & Me.Controls(.username.field_name) & "'" _

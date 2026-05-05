@@ -27,6 +27,15 @@ Public Type typ_filter_controls
     header_cmd_19 As New cls_field
     header_cmd_20 As New cls_field
     header_cmd_21 As New cls_field
+    header_cmd_22 As New cls_field
+    header_cmd_23 As New cls_field
+    header_cmd_24 As New cls_field
+    header_cmd_25 As New cls_field
+    header_cmd_26 As New cls_field
+    header_cmd_27 As New cls_field
+    header_cmd_28 As New cls_field
+    header_cmd_29 As New cls_field
+    header_cmd_30 As New cls_field
 End Type
 
 Public Type typ_uw_data_controls
@@ -362,6 +371,7 @@ Const proc_name As String = "user_management.refresh_uws_f"
     Dim input_year As Long
     Dim employee_name As String
     Dim name_condition As String
+    Dim product_condition As String
     Dim role_condition As String
     Dim str_condition As String
     Dim year_condition As String
@@ -375,6 +385,8 @@ Const proc_name As String = "user_management.refresh_uws_f"
     
     role_condition = ""
     budget_condition = ""
+    product_condition = ""
+    
     For Each fld In user_management.col_filter_controls
         If fld.is_active Then
             If fld.field_name_in_recordset = "role_id" Then
@@ -383,11 +395,15 @@ Const proc_name As String = "user_management.refresh_uws_f"
             ElseIf fld.field_name_in_recordset = "budget_region_id" Then
                 If budget_condition <> "" Then budget_condition = budget_condition & " OR "
                 budget_condition = budget_condition & fld.field_name_in_recordset & " = " & fld.field_value
+            ElseIf fld.field_name_in_recordset = "product_id" Then
+                If product_condition <> "" Then product_condition = product_condition & " OR "
+                product_condition = product_condition & fld.field_name_in_recordset & " = " & fld.field_value
             End If
         End If
     Next fld
     If role_condition <> "" Then role_condition = " AND (" & role_condition & ")"
     If budget_condition <> "" Then budget_condition = " AND (" & budget_condition & ")"
+    If product_condition <> "" Then product_condition = " AND (" & product_condition & " OR product_id IS NULL)"
     
     name_condition = ""
     If IsNull(Forms(form_name)!header_filter_employee_name) = False Then
@@ -397,7 +413,7 @@ Const proc_name As String = "user_management.refresh_uws_f"
         End If
     End If
     
-    str_condition = year_condition & role_condition & budget_condition & name_condition
+    str_condition = year_condition & role_condition & budget_condition & name_condition & product_condition
     
     If user_management.current_source = "" Then user_management.current_source = Load.sources.employees_global_view
     fix_rs.uws_f str_condition, user_management.current_source
@@ -463,6 +479,15 @@ Public Sub init__cols()
         user_management.col_filter_controls.Add .header_cmd_19
         user_management.col_filter_controls.Add .header_cmd_20
         user_management.col_filter_controls.Add .header_cmd_21
+        user_management.col_filter_controls.Add .header_cmd_22
+        user_management.col_filter_controls.Add .header_cmd_23
+        user_management.col_filter_controls.Add .header_cmd_24
+        user_management.col_filter_controls.Add .header_cmd_25
+        user_management.col_filter_controls.Add .header_cmd_26
+        user_management.col_filter_controls.Add .header_cmd_27
+        user_management.col_filter_controls.Add .header_cmd_28
+        user_management.col_filter_controls.Add .header_cmd_29
+        user_management.col_filter_controls.Add .header_cmd_30
     End With
     
 outro:
@@ -659,6 +684,70 @@ Public Sub init__filter_controls()
             .field_name = "header_cmd_21"
             .id = -1
             .field_caption_default = "header_cmd_21"
+            .field_visible = False
+        End With
+        With .header_cmd_22
+            .field_name = "header_cmd_22"
+            .id = 4
+            .field_caption_default = "operational w&&i: on"
+            .field_name_in_recordset = "product_id"
+            .field_value = 4
+            .field_visible = True
+        End With
+        With .header_cmd_23
+            .field_name = "header_cmd_23"
+            .id = 5
+            .field_caption_default = "real estate: on"
+            .field_name_in_recordset = "product_id"
+            .field_value = 5
+            .field_visible = True
+        End With
+        With .header_cmd_24
+            .field_name = "header_cmd_24"
+            .id = 6
+            .field_caption_default = "tax: on"
+            .field_name_in_recordset = "product_id"
+            .field_value = 6
+            .field_visible = True
+        End With
+        With .header_cmd_25
+            .field_name = "header_cmd_25"
+            .id = 7
+            .field_caption_default = "contingency: on"
+            .field_name_in_recordset = "product_id"
+            .field_value = 7
+            .field_visible = True
+        End With
+        With .header_cmd_26
+            .field_name = "header_cmd_26"
+            .id = 8
+            .field_caption_default = "general: on"
+            .field_name_in_recordset = "product_id"
+            .field_value = 8
+            .field_visible = True
+        End With
+        With .header_cmd_27
+            .field_name = "header_cmd_27"
+            .id = -1
+            .field_caption_default = "header_cmd_27"
+            .field_visible = False
+        End With
+        With .header_cmd_28
+            .field_name = "header_cmd_28"
+            .id = -1
+            .field_caption_default = "header_cmd_28"
+            .field_visible = False
+        End With
+        With .header_cmd_29
+            .field_name = "header_cmd_29"
+            .id = -1
+            .field_caption_default = "header_cmd_29"
+            .field_visible = False
+        End With
+        With .header_cmd_30
+            .field_name = "header_cmd_30"
+            .id = -1
+            .field_caption_default = "header_cmd_30"
             .field_visible = False
         End With
     End With

@@ -20,6 +20,8 @@ Public binder_questions_table As String
 Public binder_questions_view As String
 Public binder_risk_types_table As String
 Public binder_risk_types_view As String
+Public binders_view As String
+Public budget_table As String
 
 Public brands_table As String
 Public brands_view As String
@@ -49,6 +51,7 @@ Public deal_roles_table As String
 Public deal_statuses_view As String
 Public deal_tags_table As String
 Public deals_for_auto_archiving_view As String
+Public deals_for_rate_adeqacy_view As String
 Public deals_table As String
 Public deals_view As String
 Public duplicate_check_view As String
@@ -69,6 +72,9 @@ Public folder_moving_table As String
 
 Public global_deal_list_view As String
 Public global_policy_list_view As String
+Public guide_rol_table As String
+Public guide_rol_view As String
+
 Public insurers_table As String
 Public insurers_view As String
 Public jurisdictions_table As String
@@ -161,9 +167,11 @@ Public Sub init()
         .binder_questions_view = "stella_common.cm_binder_questions_v"
         .binder_risk_types_table = "stella_common.cm_binder_risk_types_t"
         .binder_risk_types_view = "stella_common.cm_binder_risk_types_v"
+        .binders_view = "stella_common.binders_v"
         .brands_table = "stella_common.brands_t"
         .brands_view = "stella_common.brands_v"
         .budget_homes_view = "stella_common.budget_homes_v"
+        .budget_table = "stella_common.budget_t"
         
         .cm_country_procedures_templates_table = "stella_common.cm_country_procedures_templates_t"
         .cm_country_procedures_templates_view = "stella_common.cm_country_procedures_templates_v"
@@ -172,6 +180,7 @@ Public Sub init()
         
         .deal_roles_table = "stella_common.deal_roles_t"
         .deal_statuses_view = "stella_common.deal_statuses_v"
+        .deals_for_rate_adeqacy_view = "stella_common.rate_adequacy_deals_global_v"
         
         .employee_products_table = "stella_common.employee_products_t"
         .employee_product_links_table = "stella_common.employee_product_links_t"
@@ -182,7 +191,9 @@ Public Sub init()
         
         .global_deal_list_view = "stella_common.global_deal_list_v"
         .global_policy_list_view = "stella_common.global_policy_list_v"
-        
+        .guide_rol_table = "stella_common.pricing_t"
+        .guide_rol_view = "stella_common.pricing_v"
+    
         .insurers_table = "stella_common.insurers_t"
         .insurers_view = "stella_common.insurers_v"
         
